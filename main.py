@@ -6,7 +6,7 @@ class GameConstants(Enum):
     """
     Stores all the constants used in the game
     """
-    WIDTH   = 1000
+    WIDTH   = 500
     HEIGHT  = 750
     TITLE   = "Whack a Mole"
 
