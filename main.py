@@ -13,7 +13,7 @@ class GameConstants:
     GAMEMAXFPS      = 60
 
     # Hole Size
-    HOLEWIDTH       = int(GAMEWIDTH*0.25)
+    HOLEWIDTH       = 100
     HOLEHEIGHT      = int(HOLEWIDTH*(3/8))
 
     # Mole Data
@@ -22,13 +22,13 @@ class GameConstants:
     MOLEDEPTH       = 15
     MOLECOOLDOWN    = 500 #ms
     MOLECHANCE      = 1/30
-    MOLECOUNT       = 12
+    MOLECOUNT       = 16
     MOLEUPMIN       = 0.3 #s
     MOLEUPMAX       = 2 #s
 
     # Holes
     HOLEROWS        = 4
-    HOLECOLUMNS     = 3
+    HOLECOLUMNS     = 4
 
     # PyGame Button Values
     LEFTMOUSEBUTTON = 1
@@ -40,6 +40,10 @@ class GameConstants:
     # Checks
     if MOLECOUNT > HOLEROWS*HOLECOLUMNS:
         raise ValueError("MOLECOUNT too high")
+    if HOLEHEIGHT*HOLEROWS > GAMEHEIGHT:
+        raise ValueError("HOLEROWS or HOLEHEIGHT too high (or GAMEHEIGHT too small)")
+    if HOLEWIDTH*HOLECOLUMNS > GAMEWIDTH:
+        raise ValueError("HOLECOLUMNS or HOLEWIDTH too high (or GAMEWIDTH too small)")
 
 
 class Score:
@@ -48,10 +52,31 @@ class Score:
     """
 
     def __init__(self):
-        self.score = 0
+        self.hits = 0
         self.misses = 0
         self.level = 1
 
+    def check_level(self):
+        self.level = 1
+
+    def hit(self):
+        self.hits += 1
+        self.check_level()
+
+    def miss(self):
+        self.misses += 1
+
+    @property
+    def attempts(self):
+        return self.hits + self.misses
+
+    @property
+    def score(self):
+        hits = [self.hits, 0 if self.attempts==0 else self.hits/self.attempts*100]
+        misses = [self.misses, 0 if self.attempts==0 else self.misses/self.attempts*100]
+        return "Hits: {:,} ({:,.1f}%) / Misses: {:,} ({:,.1f}%) / Level: {:,}".format(
+            hits[0], hits[1], misses[0], misses[1], self.level
+        )
 
 class Mole:
     """
@@ -167,7 +192,10 @@ class Mole:
 
     def is_hit(self, pos):
         mouseX, mouseY = pos
+
+        # Top Left
         moleX1, moleY1 = self.get_hole_pos(False)
+        # Bottom Right
         moleX2, moleY2 = (moleX1+GameConstants.MOLEWIDTH, moleY1+GameConstants.MOLEHEIGHT)
 
         # Check is in valid to-be hit state
@@ -215,6 +243,7 @@ class Game:
 
         # Get the score object
         self.score = Score()
+        self.last_disp_score = ""
 
     def start(self):
         self.clock = pygame.time.Clock()
@@ -233,11 +262,15 @@ class Game:
                 # Handle click
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == GameConstants.LEFTMOUSEBUTTON:
                     pos = pygame.mouse.get_pos()
+                    hit = False
                     for mole in self.moles:
-                        hit = mole.is_hit(pos)
-                        if hit:
-                            print("hit")
-                    # TODO: Do collision checks
+                        thisHit = mole.is_hit(pos)
+                        if thisHit: hit = True
+
+                    if hit:
+                        self.score.hit()
+                    else:
+                        self.score.miss()
 
             # Display bg
             self.screen.blit(self.img_background, (0, 0))
@@ -267,6 +300,10 @@ class Game:
             # Update display
             self.clock.tick(GameConstants.GAMEMAXFPS)
             pygame.display.flip()
+            score = self.score.score
+            if score != self.last_disp_score:
+                self.last_disp_score = score
+                print(score)
 
     def run(self):
         pygame.init()
