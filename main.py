@@ -159,12 +159,16 @@ class Mole:
         # State of showing animation
         # 0 = No, 1 = Doing Up, -1 = Doing Down
         self.showing_state = 0
+
+        # Hold timestamp for staying up
         self.showing_counter = 0
+
+        # Hold how long mole will stay up
+        self.show_time = 0
 
         # Our current hole data
         self.current_hole = (0,0)
         self.last_hole = (0,0)
-        self.show_time = 0
 
         # Current frame of showing animation
         self.show_frame = 0
@@ -174,6 +178,9 @@ class Mole:
 
         # Cooldown from last popup
         self.cooldown = 0
+
+        # Indicates if mole is hit
+        # False = Not hit, timestamp for stunned freeze
         self.hit = False
 
     @property
