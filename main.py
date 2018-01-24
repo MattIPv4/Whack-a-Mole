@@ -10,6 +10,7 @@ A simple Whack a Mole game written with PyGame
 import pygame
 from random import randint, choice
 
+
 class GameConstants:
     """
     Stores all the constants used in the game
@@ -143,6 +144,7 @@ class Score:
 
     def miss(self):
         self.misses += 1
+
 
 class Mole:
     """
@@ -323,6 +325,7 @@ class Mole:
                     else:
                         return 2
         return False
+
 
 class Game:
     """
