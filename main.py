@@ -151,9 +151,9 @@ class Mole:
 
     def __init__(self):
         # Load images
-        self.img_normal = pygame.image.load("mole.png")
+        self.img_normal = pygame.image.load("assets/mole.png")
         self.img_normal = pygame.transform.scale(self.img_normal, (GameConstants.MOLEWIDTH, GameConstants.MOLEHEIGHT))
-        self.img_hit = pygame.image.load("mole_hit.png")
+        self.img_hit = pygame.image.load("assets/mole_hit.png")
         self.img_hit = pygame.transform.scale(self.img_hit, (GameConstants.MOLEWIDTH, GameConstants.MOLEHEIGHT))
 
         # State of showing animation
@@ -335,11 +335,11 @@ class Game:
         pygame.display.set_caption(GameConstants.TITLE)
 
         # Load background
-        self.img_background = pygame.image.load("background.png")
+        self.img_background = pygame.image.load("assets/background.png")
         self.img_background = pygame.transform.scale(self.img_background, (GameConstants.GAMEWIDTH, GameConstants.GAMEHEIGHT))
 
         # Load hole
-        self.img_hole = pygame.image.load("hole.png")
+        self.img_hole = pygame.image.load("assets/hole.png")
         self.img_hole = pygame.transform.scale(self.img_hole, (GameConstants.HOLEWIDTH, GameConstants.HOLEHEIGHT))
 
         # Load moles
