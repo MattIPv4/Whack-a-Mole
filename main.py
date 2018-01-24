@@ -92,10 +92,8 @@ class Score:
                 safe_lines.append(unsafe)
                 break
 
-            _s = unsafe[0:slash_index].strip()
-            _u = unsafe[slash_index + 1:].strip()
-            safe_lines.append(_s)
-            unsafe = _u
+            safe_lines.append(unsafe[0:slash_index].strip())
+            unsafe = unsafe[slash_index + 1:].strip()
 
         safe_lines.append(unsafe)
         return safe_lines
