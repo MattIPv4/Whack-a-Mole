@@ -193,8 +193,7 @@ class Mole:
     def chance(self, level):
         level -= 1  # Start at 0
 
-        levelChance = 1 - ((GameConstants.LEVELMOLECHANCE / 100) * level)
-        if levelChance < 0: levelChance = 0  # TODO: Something better than 0 cause this essentially stops the game
+        levelChance = 1 + ((GameConstants.LEVELMOLECHANCE / 100) * level)
 
         chance = int((GameConstants.MOLECHANCE ** -1) * levelChance)
         return chance
@@ -203,7 +202,7 @@ class Mole:
         level -= 1  # Start at 0
 
         levelTime = 1 - ((GameConstants.LEVELMOLESPEED / 100) * level)
-        if levelTime < 0: levelTime = 0  # TODO: Something better than 0 cause this essentially stops the game
+        if levelTime < 0: levelTime = 0 # No wait, just up & down
 
         timeMin = int(GameConstants.MOLEUPMIN * 1000 * levelTime)
         timeMax = int(GameConstants.MOLEUPMAX * 1000 * levelTime)
@@ -394,6 +393,22 @@ class Game:
                         self.score.hit()
                     if missed:
                         self.score.miss()
+
+                # Handle cheats (for dev work)
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_t:
+                        self.score.misses = 0
+                    if event.key == pygame.K_y:
+                        self.score.misses += 5
+                    if event.key == pygame.K_u:
+                        self.score.misses -= 5
+
+                    if event.key == pygame.K_i:
+                        self.score.hits = 0
+                    if event.key == pygame.K_o:
+                        self.score.hits += 5
+                    if event.key == pygame.K_p:
+                        self.score.hits -= 5
 
             # Display bg
             self.screen.blit(self.img_background, (0, 0))
