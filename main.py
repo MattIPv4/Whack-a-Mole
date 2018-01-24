@@ -26,6 +26,7 @@ class GameConstants:
     MOLEHEIGHT      = int(MOLEWIDTH)
     MOLEDEPTH       = 15 #% of height
     MOLECOOLDOWN    = 500 #ms
+    MOLESTUNNED     = 1000 #ms
     MOLECHANCE      = 1/30
     MOLECOUNT       = 16
     MOLEUPMIN       = 0.3 #s
@@ -69,7 +70,7 @@ class Score:
         if self.score<0:
             self.level = 1
         else:
-            self.level = 1 + (self.score // GameConstants.LEVELGAP)
+            self.level = int(1 + (self.score // GameConstants.LEVELGAP))
 
     def hit(self):
         self.hits += 1
@@ -86,7 +87,7 @@ class Score:
     def disp_score(self):
         hits = [self.hits, 0 if self.attempts==0 else self.hits/self.attempts*100]
         misses = [self.misses, 0 if self.attempts==0 else self.misses/self.attempts*100]
-        return "Score: {:,} / Hits: {:,} ({:,.1f}%) / Misses: {:,} ({:,.1f}%) / Level: {:,}".format(
+        return "Score: {:,.2f} / Hits: {:,} ({:,.1f}%) / Misses: {:,} ({:,.1f}%) / Level: {:,.0f}".format(
             self.score, hits[0], hits[1], misses[0], misses[1], self.level
         )
 
@@ -96,8 +97,11 @@ class Mole:
     """
 
     def __init__(self):
-        self.img = pygame.image.load("mole.png")
-        self.img = pygame.transform.scale(self.img, (GameConstants.MOLEWIDTH, GameConstants.MOLEHEIGHT))
+        # Load images
+        self.img_normal = pygame.image.load("mole.png")
+        self.img_normal = pygame.transform.scale(self.img_normal, (GameConstants.MOLEWIDTH, GameConstants.MOLEHEIGHT))
+        self.img_hit = pygame.image.load("mole_hit.png")
+        self.img_hit = pygame.transform.scale(self.img_hit, (GameConstants.MOLEWIDTH, GameConstants.MOLEHEIGHT))
 
         # State of showing animation
         # 0 = No, 1 = Doing Up, -1 = Doing Down
@@ -118,6 +122,11 @@ class Mole:
         # Cooldown from last popup
         self.cooldown = 0
         self.hit = False
+
+    @property
+    def image(self):
+        if self.hit != False: return self.img_hit
+        return self.img_normal
 
     def do_display(self, holes, level):
 
@@ -184,6 +193,15 @@ class Mole:
 
         frame = 0
 
+        if self.hit != False:
+            if pygame.time.get_ticks() - self.hit >= GameConstants.MOLESTUNNED:
+                # Unfrozen after hit, hide
+                if self.showing_state != 0:
+                    self.showing_state = -1
+            else:
+                # Frozen from hit
+                do_tick = False
+
         # Going Up
         if self.showing_state == 1:
             if self.show_frame <= self.frames:
@@ -219,15 +237,17 @@ class Mole:
         moleX2, moleY2 = (moleX1+GameConstants.MOLEWIDTH, moleY1+GameConstants.MOLEHEIGHT)
 
         # Check is in valid to-be hit state
-        if self.showing_state != 0 and not self.hit:
+        if self.showing_state != 0:
             # Check x
             if mouseX >= moleX1 and mouseX <= moleX2:
                 # Check y
                 if mouseY >= moleY1 and mouseY <= moleY2:
-                    self.hit = True
-                    self.showing_state = -1
-                    self.show_frame = int(self.frames/2)
-                    return True
+                    # Check is not stunned
+                    if self.hit == False:
+                        self.hit = pygame.time.get_ticks()
+                        return 1
+                    else:
+                        return 2
         return False
 
 class Game:
@@ -286,14 +306,17 @@ class Game:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == GameConstants.LEFTMOUSEBUTTON:
                     pos = pygame.mouse.get_pos()
                     hit = False
+                    missed = True
                     for mole in self.moles:
-                        if mole.is_hit(pos):
+                        if mole.is_hit(pos) == 1: # Hit
                             hit = True
-                            break
+                            missed = False
+                        if mole.is_hit(pos) == 2: # Hit but stunned
+                            missed = False
 
                     if hit:
                         self.score.hit()
-                    else:
+                    if missed:
                         self.score.miss()
 
             # Display bg
@@ -320,7 +343,7 @@ class Game:
                 if mole_display[0]:
                     # Get pos and display
                     pos = mole.get_hole_pos()
-                    self.screen.blit(mole.img, pos)
+                    self.screen.blit(mole.image, pos)
 
             # Update display
             self.clock.tick(GameConstants.GAMEMAXFPS)
