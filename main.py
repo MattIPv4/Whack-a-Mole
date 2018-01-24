@@ -20,6 +20,7 @@ class GameConstants:
     MOLEHEIGHT      = int(MOLEWIDTH)
     MOLEDEPTH       = 15
     MOLECOOLDOWN    = 30
+    MOLECHANCE      = 1/30
 
     # Holes
     HOLEROWS        = 4
@@ -58,7 +59,8 @@ class Mole:
 
         # Our current hole data
         self.current_hole = []
-        self.current_show = 0
+        self.last_hole = []
+        self.show_time = 0
 
         # Current frame of showing animation
         self.show_frame = 0
@@ -81,16 +83,21 @@ class Mole:
             self.show_frame = 0
 
             # Pick
-            random = rnd(1, 10)
-            if random == 5:
+            random = rnd(0, GameConstants.MOLECHANCE**-1)
+            if random == 1:
                 self.showing = 1
-                self.current_hole = choice(holes)
-                self.current_show = rnd(20, 80)
+                self.show_time = rnd(20, 80)
+
+                # Pick a new hole, don't pick the last one
+                self.current_hole = self.last_hole
+                while self.current_hole == self.last_hole:
+                    self.current_hole = choice(holes)
+                self.last_hole = self.current_hole
 
         # Show as popped up for a bit
         if self.showing > 1:
             self.showing += 1
-            if self.showing > self.current_show:
+            if self.showing > self.show_time:
                 self.showing = -1
 
         # Return if game should display
@@ -154,7 +161,7 @@ class Game:
         self.img_hole = pygame.transform.scale(self.img_hole, (GameConstants.HOLEWIDTH, GameConstants.HOLEHEIGHT))
 
         # Load mole
-        self.mole = Mole()
+        self.moles = [Mole()]
 
         # Generate hole positions
         self.holes = []
@@ -197,10 +204,11 @@ class Game:
             for position in self.holes:
                 self.screen.blit(self.img_hole, position)
 
-            # Display mole
-            if self.mole.do_display(self.holes):
-                pos = self.mole.get_hole_pos()
-                self.screen.blit(self.mole.img, pos)
+            # Display moles
+            for mole in self.moles:
+                if mole.do_display(self.holes):
+                    pos = mole.get_hole_pos()
+                    self.screen.blit(mole.img, pos)
 
             # Update display
             pygame.display.flip()
