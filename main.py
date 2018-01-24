@@ -50,7 +50,7 @@ class GameConstants:
 
     # Misc Data
     TITLE           = "Whack a Mole"
-    FONTSIZE        = 12
+    FONTSIZE        = 15
 
 
     # Checks
