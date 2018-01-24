@@ -10,6 +10,24 @@ A simple Whack a Mole game written with PyGame
 import pygame
 from random import randint, choice
 
+def wrap(unsafe, length, break_char):
+    """
+    Splits given string to a max line length of :length:, breaking only at :break_char:
+    Returns list of split string
+    """
+    safe_lines = []
+    while len(unsafe) > length:
+        slash_index = unsafe.rfind(break_char, 0, length)
+
+        if slash_index == -1:
+            break
+
+        safe_lines.append(unsafe[0:slash_index].strip())
+        unsafe = unsafe[slash_index + 1:].strip()
+
+    safe_lines.append(unsafe)
+    return safe_lines
+
 
 class GameConstants:
     """
@@ -82,21 +100,6 @@ class Score:
         else:
             return int(1 + (self.score // GameConstants.LEVELGAP))
 
-    def wrap(self, string, length, break_char):
-        safe_lines = []
-        unsafe = string
-        while len(unsafe) > length:
-            slash_index = unsafe.rfind(break_char, 0, length)
-
-            if slash_index == -1:
-                break
-
-            safe_lines.append(unsafe[0:slash_index].strip())
-            unsafe = unsafe[slash_index + 1:].strip()
-
-        safe_lines.append(unsafe)
-        return safe_lines
-
     @property
     def label(self):
         # Can't be done in init as needs to be called after pygame.init()
@@ -110,7 +113,7 @@ class Score:
         line_height = test.get_height()
 
         # Get wrapped text
-        lines = self.wrap(self.disp_score, max_line_width, "/")
+        lines = wrap(self.disp_score, max_line_width, "/")
         # Generate blank surface
         surface = pygame.Surface((GameConstants.GAMEWIDTH, GameConstants.GAMEHEIGHT), pygame.SRCALPHA, 32)
         surface = surface.convert_alpha()
