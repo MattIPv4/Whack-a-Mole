@@ -106,14 +106,14 @@ class Score:
         if not hasattr(self, 'font'):
             self.font = pygame.font.SysFont("monospace", GameConstants.FONTSIZE)
 
-        # Generate test char
-        test = self.font.render("a", 1, (0, 0, 0))
-        # Calc line sizes
-        max_line_width = GameConstants.GAMEWIDTH//test.get_width()
-        line_height = test.get_height()
+            # Generate test char
+            test = self.font.render("a", 1, (0, 0, 0))
+            # Calc line sizes
+            self.max_line_width = GameConstants.GAMEWIDTH//test.get_width()
+            self.line_height = test.get_height()
 
         # Get wrapped text
-        lines = wrap(self.disp_score, max_line_width, "/")
+        lines = wrap(self.disp_score, self.max_line_width, "/")
         # Generate blank surface
         surface = pygame.Surface((GameConstants.GAMEWIDTH, GameConstants.GAMEHEIGHT), pygame.SRCALPHA, 32)
         surface = surface.convert_alpha()
@@ -123,7 +123,7 @@ class Score:
         for line in lines:
             label = self.font.render(line, 1, (255, 255, 0))
             surface.blit(label, (0, y))
-            y += line_height+2
+            y += self.line_height+2
 
         return surface
 
@@ -375,7 +375,7 @@ class Game:
                 # Handle quit
                 if event.type == pygame.QUIT:
                     self.loop = False
-                    continue
+                    break
 
                 # Handle click
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == GameConstants.LEFTMOUSEBUTTON:
