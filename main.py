@@ -21,7 +21,7 @@ class GameConstants:
     GAMEMAXFPS      = 60
 
     # Levels
-    LEVELGAP        = 5 #score
+    LEVELGAP        = 10 #score
     LEVELMOLESPEED  = 5 #% faster
     LEVELMOLECHANCE = 10 #% less
 
@@ -72,7 +72,7 @@ class Score:
 
     @property
     def score(self):
-        return self.hits - (self.misses/2)
+        return (self.hits - (self.misses/2)) * 2
 
     @property
     def level(self):
@@ -134,7 +134,7 @@ class Score:
     def disp_score(self):
         hits = [self.hits, 0 if self.attempts==0 else self.hits/self.attempts*100]
         misses = [self.misses, 0 if self.attempts==0 else self.misses/self.attempts*100]
-        return "Score: {:,.2f} / Hits: {:,} ({:,.1f}%) / Misses: {:,} ({:,.1f}%) / Level: {:,.0f}".format(
+        return "Score: {:,.0f} / Hits: {:,} ({:,.1f}%) / Misses: {:,} ({:,.1f}%) / Level: {:,.0f}".format(
             self.score, hits[0], hits[1], misses[0], misses[1], self.level
         )
 
