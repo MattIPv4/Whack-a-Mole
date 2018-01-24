@@ -7,7 +7,7 @@ class GameConstants:
     Stores all the constants used in the game
     """
 
-    # Game Size
+    # Game
     GAMEWIDTH       = 500
     GAMEHEIGHT      = 750
 
@@ -19,8 +19,11 @@ class GameConstants:
     MOLEWIDTH       = int(HOLEWIDTH*(2/3))
     MOLEHEIGHT      = int(MOLEWIDTH)
     MOLEDEPTH       = 15
-    MOLECOOLDOWN    = 30
+    MOLECOOLDOWN    = 500 #ms
     MOLECHANCE      = 1/30
+    MOLECOUNT       = 1
+    MOLEUPMIN       = 0.1 #s
+    MOLEUPMAX       = 2 #s
 
     # Holes
     HOLEROWS        = 4
@@ -54,8 +57,9 @@ class Mole:
         self.img = pygame.transform.scale(self.img, (GameConstants.MOLEWIDTH, GameConstants.MOLEHEIGHT))
 
         # State of showing animation
-        # 0 = No, 1 = Doing Up, -1 = Doing Down, <1 = Done Up, >-1 = Done Down
-        self.showing = 0
+        # 0 = No, 1 = Doing Up, -1 = Doing Down
+        self.showing_state = 0
+        self.showing_counter = 0
 
         # Our current hole data
         self.current_hole = []
@@ -66,27 +70,32 @@ class Mole:
         self.show_frame = 0
 
         # Total number of frames to show for popping up
-        self.frames = 10
+        self.frames = 5
 
         # Cooldown from last popup
         self.cooldown = 0
 
     def do_display(self, holes):
+
         # If in cooldown
-        if self.cooldown > 0:
-            self.cooldown -= 1
+        if self.cooldown != 0 and pygame.time.get_ticks() - self.cooldown < GameConstants.MOLECOOLDOWN:
             return False
+        else:
+            self.cooldown = 0
 
         # Random choice if not showing
-        if self.showing == 0:
+        if self.showing_state == 0:
             # Reset
             self.show_frame = 0
 
             # Pick
             random = rnd(0, GameConstants.MOLECHANCE**-1)
             if random == 1:
-                self.showing = 1
-                self.show_time = rnd(20, 80)
+                self.showing_state = 1
+                self.showing_counter = 0
+                timeMin = int(GameConstants.MOLEUPMIN*1000)
+                timeMax = int(GameConstants.MOLEUPMAX*1000)
+                self.show_time = rnd(timeMin, timeMax)
 
                 # Pick a new hole, don't pick the last one
                 self.current_hole = self.last_hole
@@ -95,13 +104,13 @@ class Mole:
                 self.last_hole = self.current_hole
 
         # Show as popped up for a bit
-        if self.showing > 1:
-            self.showing += 1
-            if self.showing > self.show_time:
-                self.showing = -1
+        if self.showing_state == 1 and self.showing_counter != 0:
+            if pygame.time.get_ticks() - self.showing_counter >= self.show_time:
+                self.showing_state = -1
+                self.showing_counter = 0
 
         # Return if game should display
-        return (not self.showing==0)
+        return (not self.showing_state==0)
 
     def get_base_pos(self):
         holeX, holeY = self.current_hole
@@ -117,25 +126,26 @@ class Mole:
         frame = 0
 
         # Going Up
-        if self.showing == 1:
-            if do_tick: self.show_frame += 1
+        if self.showing_state == 1:
             if self.show_frame <= self.frames:
                 frame = GameConstants.MOLEDEPTH/self.frames * (self.frames-self.show_frame)
+                if do_tick: self.show_frame += 1
             else:
                 # Hold
-                self.showing = 2
+                if self.showing_counter == 0:
+                    self.showing_counter = pygame.time.get_ticks()
 
         # Going Down
-        if self.showing == -1:
+        if self.showing_state == -1:
             if do_tick: self.show_frame -= 1
             if self.show_frame >= 0:
                 frame = GameConstants.MOLEDEPTH / self.frames * (self.frames-self.show_frame)
             else:
                 # Reset
-                self.showing = 0
+                self.showing_state = 0
                 frame = GameConstants.MOLEDEPTH
                 # Begin cooldown
-                if do_tick: self.cooldown = GameConstants.MOLECOOLDOWN
+                if do_tick: self.cooldown = pygame.time.get_ticks()
 
         moleY += (GameConstants.MOLEHEIGHT * (frame/100))
 
@@ -161,7 +171,8 @@ class Game:
         self.img_hole = pygame.transform.scale(self.img_hole, (GameConstants.HOLEWIDTH, GameConstants.HOLEHEIGHT))
 
         # Load mole
-        self.moles = [Mole()]
+        self.moles = [Mole()]*GameConstants.MOLECOUNT
+        print(self.moles)
 
         # Generate hole positions
         self.holes = []
@@ -211,6 +222,7 @@ class Game:
                     self.screen.blit(mole.img, pos)
 
             # Update display
+            self.clock.tick(60)
             pygame.display.flip()
 
     def run(self):
