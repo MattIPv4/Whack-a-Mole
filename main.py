@@ -89,7 +89,6 @@ class Score:
             slash_index = unsafe.rfind(break_char, 0, length)
 
             if slash_index == -1:
-                safe_lines.append(unsafe)
                 break
 
             safe_lines.append(unsafe[0:slash_index].strip())
