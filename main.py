@@ -10,6 +10,7 @@ class GameConstants:
     # Game
     GAMEWIDTH       = 500
     GAMEHEIGHT      = 750
+    GAMEMAXFPS      = 60
 
     # Hole Size
     HOLEWIDTH       = int(GAMEWIDTH*0.25)
@@ -67,8 +68,8 @@ class Mole:
         self.showing_counter = 0
 
         # Our current hole data
-        self.current_hole = []
-        self.last_hole = []
+        self.current_hole = (0,0)
+        self.last_hole = (0,0)
         self.show_time = 0
 
         # Current frame of showing animation
@@ -164,6 +165,19 @@ class Mole:
 
         return (moleX, moleY)
 
+    def is_hit(self, pos):
+        mouseX, mouseY = pos
+        moleX1, moleY1 = self.get_hole_pos(False)
+        moleX2, moleY2 = (moleX1+GameConstants.MOLEWIDTH, moleY1+GameConstants.MOLEHEIGHT)
+
+        # Check is in valid to-be hit state
+        if self.showing_state != 0:
+            # Check x
+            if mouseX >= moleX1 and mouseX <= moleX2:
+                # Check y
+                if mouseY >= moleY1 and mouseY <= moleY2:
+                    return True
+        return False
 
 class Game:
     """
@@ -218,7 +232,11 @@ class Game:
 
                 # Handle click
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == GameConstants.LEFTMOUSEBUTTON:
-                    pass
+                    pos = pygame.mouse.get_pos()
+                    for mole in self.moles:
+                        hit = mole.is_hit(pos)
+                        if hit:
+                            print("hit")
                     # TODO: Do collision checks
 
             # Display bg
@@ -247,7 +265,7 @@ class Game:
                     self.screen.blit(mole.img, pos)
 
             # Update display
-            self.clock.tick(60)
+            self.clock.tick(GameConstants.GAMEMAXFPS)
             pygame.display.flip()
 
     def run(self):
