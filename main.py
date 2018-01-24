@@ -173,7 +173,7 @@ class Mole:
         # Current frame of showing animation
         self.show_frame = 0
 
-        # Total number of frames to show for popping up
+        # Total number of frames to show for popping up (not timed)
         self.frames = 5
 
         # Cooldown from last popup
