@@ -12,6 +12,11 @@ class GameConstants:
     GAMEHEIGHT      = 750
     GAMEMAXFPS      = 60
 
+    # Levels
+    LEVELGAP        = 4 #hits
+    LEVELMOLESPEED  = 2 #% faster
+    LEVELMOLECOUNT  = 10 #% less
+
     # Hole Size
     HOLEWIDTH       = 100
     HOLEHEIGHT      = int(HOLEWIDTH*(3/8))
@@ -19,7 +24,7 @@ class GameConstants:
     # Mole Data
     MOLEWIDTH       = int(HOLEWIDTH*(2/3))
     MOLEHEIGHT      = int(MOLEWIDTH)
-    MOLEDEPTH       = 15
+    MOLEDEPTH       = 15 #% of height
     MOLECOOLDOWN    = 500 #ms
     MOLECHANCE      = 1/30
     MOLECOUNT       = 16
@@ -56,8 +61,15 @@ class Score:
         self.misses = 0
         self.level = 1
 
+    @property
+    def score(self):
+        return self.hits - (self.misses/2)
+
     def check_level(self):
-        self.level = 1
+        if self.score<0:
+            self.level = 1
+        else:
+            self.level = 1 + (self.score // GameConstants.LEVELGAP)
 
     def hit(self):
         self.hits += 1
@@ -71,11 +83,11 @@ class Score:
         return self.hits + self.misses
 
     @property
-    def score(self):
+    def disp_score(self):
         hits = [self.hits, 0 if self.attempts==0 else self.hits/self.attempts*100]
         misses = [self.misses, 0 if self.attempts==0 else self.misses/self.attempts*100]
-        return "Hits: {:,} ({:,.1f}%) / Misses: {:,} ({:,.1f}%) / Level: {:,}".format(
-            hits[0], hits[1], misses[0], misses[1], self.level
+        return "Score: {:,} / Hits: {:,} ({:,.1f}%) / Misses: {:,} ({:,.1f}%) / Level: {:,}".format(
+            self.score, hits[0], hits[1], misses[0], misses[1], self.level
         )
 
 class Mole:
@@ -105,8 +117,9 @@ class Mole:
 
         # Cooldown from last popup
         self.cooldown = 0
+        self.hit = False
 
-    def do_display(self, holes):
+    def do_display(self, holes, level):
 
         # If in cooldown
         if self.cooldown != 0:
@@ -121,22 +134,29 @@ class Mole:
         if self.showing_state == 0 and holes:
             # Reset
             self.show_frame = 0
+            self.hit = False
 
             # Pick
             random = rnd(0, GameConstants.MOLECHANCE**-1)
             if random == 1:
                 self.showing_state = 1
                 self.showing_counter = 0
-                timeMin = int(GameConstants.MOLEUPMIN*1000)
-                timeMax = int(GameConstants.MOLEUPMAX*1000)
+
+                level -= 1 # Start of 0
+                level = 1 - ((GameConstants.LEVELMOLESPEED/100)*level)
+                if level<0: level=0
+                timeMin = int(GameConstants.MOLEUPMIN*1000*level)
+                timeMax = int(GameConstants.MOLEUPMAX*1000*level)
+
                 self.show_time = rnd(timeMin, timeMax)
 
-                # Pick a new hole, don't pick the last one
+                # Pick a new hole, don't pick the last one, don't infinite loop
                 self.current_hole = self.last_hole
-                while self.current_hole == self.last_hole:
-                    self.current_hole = choice(holes)
-                self.last_hole = self.current_hole
-                new_hole = True
+                if len(holes)>1 or self.current_hole != holes[0]:
+                    while self.current_hole == self.last_hole:
+                        self.current_hole = choice(holes)
+                    self.last_hole = self.current_hole
+                    new_hole = True
 
         # Show as popped up for a bit
         if self.showing_state == 1 and self.showing_counter != 0:
@@ -199,11 +219,14 @@ class Mole:
         moleX2, moleY2 = (moleX1+GameConstants.MOLEWIDTH, moleY1+GameConstants.MOLEHEIGHT)
 
         # Check is in valid to-be hit state
-        if self.showing_state != 0:
+        if self.showing_state != 0 and not self.hit:
             # Check x
             if mouseX >= moleX1 and mouseX <= moleX2:
                 # Check y
                 if mouseY >= moleY1 and mouseY <= moleY2:
+                    self.hit = True
+                    self.showing_state = -1
+                    self.show_frame = int(self.frames/2)
                     return True
         return False
 
@@ -264,8 +287,9 @@ class Game:
                     pos = pygame.mouse.get_pos()
                     hit = False
                     for mole in self.moles:
-                        thisHit = mole.is_hit(pos)
-                        if thisHit: hit = True
+                        if mole.is_hit(pos):
+                            hit = True
+                            break
 
                     if hit:
                         self.score.hit()
@@ -282,14 +306,15 @@ class Game:
             # Display moles
             for mole in self.moles:
                 holes = [f for f in self.holes if f not in self.used_holes]
-                mole_display = mole.do_display(holes)
+                mole_display = mole.do_display(holes, self.score.level)
 
                 # If new/old hole given
                 if len(mole_display)>1:
                     if mole_display[1]==0: # New hole
                         self.used_holes.append(mole_display[2])
                     else: # Old hole
-                        self.used_holes.remove(mole_display[2])
+                        if mole_display[2] in self.used_holes:
+                            self.used_holes.remove(mole_display[2])
 
                 # If should display
                 if mole_display[0]:
@@ -300,7 +325,7 @@ class Game:
             # Update display
             self.clock.tick(GameConstants.GAMEMAXFPS)
             pygame.display.flip()
-            score = self.score.score
+            score = self.score.disp_score
             if score != self.last_disp_score:
                 self.last_disp_score = score
                 print(score)
