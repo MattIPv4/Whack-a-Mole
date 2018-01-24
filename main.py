@@ -1,6 +1,14 @@
-import pygame
-from random import randint as rnd, choice
+# -*- coding: utf-8 -*-
 
+"""
+Whack a Mole
+~~~~~~~~~~~~~~~~~~~
+A simple Whack a Mole game written with PyGame
+:copyright: (c) 2018 Matt Cowley (IPv4)
+"""
+
+import pygame
+from random import randint, choice
 
 class GameConstants:
     """
@@ -13,9 +21,9 @@ class GameConstants:
     GAMEMAXFPS      = 60
 
     # Levels
-    LEVELGAP        = 4 #hits
-    LEVELMOLESPEED  = 2 #% faster
-    LEVELMOLECOUNT  = 10 #% less
+    LEVELGAP        = 5 #score
+    LEVELMOLESPEED  = 5 #% faster
+    LEVELMOLECHANCE = 10 #% less
 
     # Hole Size
     HOLEWIDTH       = 100
@@ -28,19 +36,20 @@ class GameConstants:
     MOLECOOLDOWN    = 500 #ms
     MOLESTUNNED     = 1000 #ms
     MOLECHANCE      = 1/30
-    MOLECOUNT       = 16
+    MOLECOUNT       = 5
     MOLEUPMIN       = 0.3 #s
     MOLEUPMAX       = 2 #s
 
     # Holes
-    HOLEROWS        = 4
-    HOLECOLUMNS     = 4
+    HOLEROWS        = 3
+    HOLECOLUMNS     = 3
 
     # PyGame Button Values
     LEFTMOUSEBUTTON = 1
 
     # Misc Data
     TITLE           = "Whack a Mole"
+    FONTSIZE        = 12
 
 
     # Checks
@@ -60,24 +69,62 @@ class Score:
     def __init__(self):
         self.hits = 0
         self.misses = 0
-        self.level = 1
 
     @property
     def score(self):
         return self.hits - (self.misses/2)
 
-    def check_level(self):
+    @property
+    def level(self):
         if self.score<0:
-            self.level = 1
+            return 1
         else:
-            self.level = int(1 + (self.score // GameConstants.LEVELGAP))
+            return int(1 + (self.score // GameConstants.LEVELGAP))
 
-    def hit(self):
-        self.hits += 1
-        self.check_level()
+    def wrap(self, string, length, break_char):
+        safe_lines = []
+        unsafe = string
+        while len(unsafe) > length:
+            slash_index = unsafe.rfind(break_char, 0, length)
 
-    def miss(self):
-        self.misses += 1
+            if slash_index == -1:
+                safe_lines.append(unsafe)
+                break
+
+            _s = unsafe[0:slash_index].strip()
+            _u = unsafe[slash_index + 1:].strip()
+            safe_lines.append(_s)
+            unsafe = _u
+
+        safe_lines.append(unsafe)
+        return safe_lines
+
+    @property
+    def label(self):
+        # Can't be done in init as needs to be called after pygame.init()
+        if not hasattr(self, 'font'):
+            self.font = pygame.font.SysFont("monospace", GameConstants.FONTSIZE)
+
+        # Generate test char
+        test = self.font.render("a", 1, (0, 0, 0))
+        # Calc line sizes
+        max_line_width = GameConstants.GAMEWIDTH//test.get_width()
+        line_height = test.get_height()
+
+        # Get wrapped text
+        lines = self.wrap(self.disp_score, max_line_width, "/")
+        # Generate blank surface
+        surface = pygame.Surface((GameConstants.GAMEWIDTH, GameConstants.GAMEHEIGHT), pygame.SRCALPHA, 32)
+        surface = surface.convert_alpha()
+
+        # Add lines
+        y = 0
+        for line in lines:
+            label = self.font.render(line, 1, (255, 255, 0))
+            surface.blit(label, (0, y))
+            y += line_height+2
+
+        return surface
 
     @property
     def attempts(self):
@@ -90,6 +137,12 @@ class Score:
         return "Score: {:,.2f} / Hits: {:,} ({:,.1f}%) / Misses: {:,} ({:,.1f}%) / Level: {:,.0f}".format(
             self.score, hits[0], hits[1], misses[0], misses[1], self.level
         )
+
+    def hit(self):
+        self.hits += 1
+
+    def miss(self):
+        self.misses += 1
 
 class Mole:
     """
@@ -128,8 +181,27 @@ class Mole:
         if self.hit != False: return self.img_hit
         return self.img_normal
 
-    def do_display(self, holes, level):
+    def chance(self, level):
+        level -= 1  # Start at 0
 
+        levelChance = 1 - ((GameConstants.LEVELMOLECHANCE / 100) * level)
+        if levelChance < 0: levelChance = 0  # TODO: Something better than 0 cause this essentially stops the game
+
+        chance = int((GameConstants.MOLECHANCE ** -1) * levelChance)
+        return chance
+
+    def timeLimits(self, level):
+        level -= 1  # Start at 0
+
+        levelTime = 1 - ((GameConstants.LEVELMOLESPEED / 100) * level)
+        if levelTime < 0: levelTime = 0  # TODO: Something better than 0 cause this essentially stops the game
+
+        timeMin = int(GameConstants.MOLEUPMIN * 1000 * levelTime)
+        timeMax = int(GameConstants.MOLEUPMAX * 1000 * levelTime)
+
+        return (timeMin, timeMax)
+
+    def do_display(self, holes, level):
         # If in cooldown
         if self.cooldown != 0:
             if pygame.time.get_ticks() - self.cooldown < GameConstants.MOLECOOLDOWN:
@@ -146,18 +218,12 @@ class Mole:
             self.hit = False
 
             # Pick
-            random = rnd(0, GameConstants.MOLECHANCE**-1)
-            if random == 1:
+            random = randint(0, self.chance(level))
+            if random == 0:
                 self.showing_state = 1
                 self.showing_counter = 0
 
-                level -= 1 # Start of 0
-                level = 1 - ((GameConstants.LEVELMOLESPEED/100)*level)
-                if level<0: level=0
-                timeMin = int(GameConstants.MOLEUPMIN*1000*level)
-                timeMax = int(GameConstants.MOLEUPMAX*1000*level)
-
-                self.show_time = rnd(timeMin, timeMax)
+                self.show_time = randint(*self.timeLimits(level))
 
                 # Pick a new hole, don't pick the last one, don't infinite loop
                 self.current_hole = self.last_hole
@@ -193,6 +259,7 @@ class Mole:
 
         frame = 0
 
+        # Stunned
         if self.hit != False:
             if pygame.time.get_ticks() - self.hit >= GameConstants.MOLESTUNNED:
                 # Unfrozen after hit, hide
@@ -268,7 +335,7 @@ class Game:
         self.img_hole = pygame.image.load("hole.png")
         self.img_hole = pygame.transform.scale(self.img_hole, (GameConstants.HOLEWIDTH, GameConstants.HOLEHEIGHT))
 
-        # Load mole
+        # Load moles
         self.moles = [Mole() for _ in range(GameConstants.MOLECOUNT)]
 
         # Generate hole positions
@@ -286,7 +353,6 @@ class Game:
 
         # Get the score object
         self.score = Score()
-        self.last_disp_score = ""
 
     def start(self):
         self.clock = pygame.time.Clock()
@@ -345,13 +411,13 @@ class Game:
                     pos = mole.get_hole_pos()
                     self.screen.blit(mole.image, pos)
 
+            # Display score
+            score = self.score.label
+            self.screen.blit(score, (5, 5))
+
             # Update display
             self.clock.tick(GameConstants.GAMEMAXFPS)
             pygame.display.flip()
-            score = self.score.disp_score
-            if score != self.last_disp_score:
-                self.last_disp_score = score
-                print(score)
 
     def run(self):
         pygame.init()
