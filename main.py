@@ -10,24 +10,6 @@ A simple Whack a Mole game written with PyGame
 import pygame
 from random import randint, choice
 
-def wrap(unsafe, length, break_char):
-    """
-    Splits given string to a max line length of :length:, breaking only at :break_char:
-    Returns list of split string
-    """
-    safe_lines = []
-    while len(unsafe) > length:
-        slash_index = unsafe.rfind(break_char, 0, length)
-
-        if slash_index == -1:
-            break
-
-        safe_lines.append(unsafe[0:slash_index].strip())
-        unsafe = unsafe[slash_index + 1:].strip()
-
-    safe_lines.append(unsafe)
-    return safe_lines
-
 
 class GameConstants:
     """
@@ -60,7 +42,7 @@ class GameConstants:
     MOLEUPMAX       = 2 #s
 
     # Holes
-    HOLEROWS        = 3
+    HOLEROWS        = 4
     HOLECOLUMNS     = 3
 
     # PyGame Button Values
@@ -79,15 +61,99 @@ class GameConstants:
     if HOLEWIDTH*HOLECOLUMNS > GAMEWIDTH:
         raise ValueError("HOLECOLUMNS or HOLEWIDTH too high (or GAMEWIDTH too small)")
 
+class Text:
+    """
+    Handles all the text used
+    """
+
+    def __init__(self):
+        self.font = pygame.font.SysFont("monospace", GameConstants.FONTSIZE)
+
+        # Generate test char
+        test = self.font.render("a", 1, (0, 0, 0))
+        # Calc line sizes
+        self.line_width = test.get_width()
+        self.line_height = test.get_height()
+
+    def wrap(self, unsafe, length, break_char):
+        """
+        Splits given string to a max line length of :length:, breaking only at :break_char:
+        Returns list of split string
+        """
+
+        safe_lines = []
+
+        # While text needs wrapping
+        while len(unsafe) > length:
+
+            # Find closest (to left) break_char from index length
+            slash_index = unsafe.rfind(break_char, 0, length)
+
+            # If not found, give up, unbreakable
+            if slash_index == -1:
+                break
+
+            # Save warpped text and continue looping
+            safe_lines.append(unsafe[0:slash_index].strip())
+            unsafe = unsafe[slash_index + 1:].strip()
+
+        safe_lines.append(unsafe)
+        return safe_lines
+
+    def get_lines(self, string, break_char, width):
+        """
+        Wraps text and renders text as font
+        Returns list of font renders
+        """
+
+        # Get wrapped text
+        if width:
+            lines = self.wrap(string, width//self.line_width, break_char)
+        else:
+            lines = [string]
+
+        # Render font
+        labels = []
+        for line in lines:
+            labels.append(self.font.render(line, 1, (255, 255, 0)))
+
+        return labels
+
+    def get_label(self, string, break_char = "", width = None, height = None):
+        """
+        Generates text in a given area, wrapped at :break_char:
+        Returns PyGame surface
+        """
+
+        # Get labels
+        labels = self.get_lines(string, break_char, width)
+
+        # Generate blank surface
+        if not width:
+            width = max([f.get_width() for f in labels])
+        if not height:
+            height = sum([self.line_height+2 for _ in labels])
+        surface = pygame.Surface((width, height), pygame.SRCALPHA, 32)
+        surface = surface.convert_alpha()
+
+        # Add lines
+        y = 0
+        for label in labels:
+            surface.blit(label, (0, y))
+            y += self.line_height + 2
+
+        return surface
+
 
 class Score:
     """
     Handles the scoring for the player
     """
 
-    def __init__(self):
+    def __init__(self, text: Text):
         self.hits = 0
         self.misses = 0
+        self.text = text
 
     @property
     def score(self):
@@ -102,30 +168,7 @@ class Score:
 
     @property
     def label(self):
-        # Can't be done in init as needs to be called after pygame.init()
-        if not hasattr(self, 'font'):
-            self.font = pygame.font.SysFont("monospace", GameConstants.FONTSIZE)
-
-            # Generate test char
-            test = self.font.render("a", 1, (0, 0, 0))
-            # Calc line sizes
-            self.max_line_width = GameConstants.GAMEWIDTH//test.get_width()
-            self.line_height = test.get_height()
-
-        # Get wrapped text
-        lines = wrap(self.disp_score, self.max_line_width, "/")
-        # Generate blank surface
-        surface = pygame.Surface((GameConstants.GAMEWIDTH, GameConstants.GAMEHEIGHT), pygame.SRCALPHA, 32)
-        surface = surface.convert_alpha()
-
-        # Add lines
-        y = 0
-        for line in lines:
-            label = self.font.render(line, 1, (255, 255, 0))
-            surface.blit(label, (0, y))
-            y += self.line_height+2
-
-        return surface
+        return self.text.get_label(self.disp_score, "/", GameConstants.GAMEWIDTH, GameConstants.GAMEHEIGHT)
 
     @property
     def attempts(self):
@@ -332,6 +375,9 @@ class Game:
     """
 
     def __init__(self):
+        # Init pygame
+        pygame.init()
+
         # Create pygame screen
         self.screen = pygame.display.set_mode((GameConstants.GAMEWIDTH, GameConstants.GAMEHEIGHT))
         pygame.display.set_caption(GameConstants.TITLE)
@@ -360,14 +406,24 @@ class Game:
                 thisX += (base_column-GameConstants.HOLEWIDTH)/2
                 self.holes.append((int(thisX), int(rowY)))
 
+        # Get the text object
+        self.text = Text()
+
         # Get the score object
-        self.score = Score()
+        self.score = Score(self.text)
+
 
     def start(self):
         self.clock = pygame.time.Clock()
         self.loop = True
 
         while self.loop:
+
+            # Used for score and text display
+            hit = False
+
+            # Mouse position
+            pos = pygame.mouse.get_pos()
 
             # Handle PyGame events
             for event in pygame.event.get():
@@ -379,8 +435,6 @@ class Game:
 
                 # Handle click
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == GameConstants.LEFTMOUSEBUTTON:
-                    pos = pygame.mouse.get_pos()
-                    hit = False
                     missed = True
                     for mole in self.moles:
                         if mole.is_hit(pos) == 1: # Hit
@@ -440,12 +494,17 @@ class Game:
             score = self.score.label
             self.screen.blit(score, (5, 5))
 
+            if hit:
+                hit_label = self.text.get_label("Hit!")
+                hit_x = (GameConstants.GAMEWIDTH-hit_label.get_width()) / 2
+                hit_y = (GameConstants.GAMEHEIGHT-hit_label.get_height()) / 2
+                self.screen.blit(hit_label, (hit_x, hit_y))
+
             # Update display
             self.clock.tick(GameConstants.GAMEMAXFPS)
             pygame.display.flip()
 
     def run(self):
-        pygame.init()
         self.start()
         pygame.quit()
 
