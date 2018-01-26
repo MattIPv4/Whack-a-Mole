@@ -35,7 +35,10 @@ class GameConstants:
     MOLEHEIGHT      = int(MOLEWIDTH)
     MOLEDEPTH       = 15 #% of height
     MOLECOOLDOWN    = 500 #ms
+
     MOLESTUNNED     = 1000 #ms
+    MOLEHITINDICATE = 500 #ms
+
     MOLECHANCE      = 1/30
     MOLECOUNT       = 5
     MOLEUPMIN       = 0.3 #s
@@ -66,14 +69,13 @@ class Text:
     Handles all the text used
     """
 
-    def __init__(self):
-        self.font = pygame.font.SysFont("monospace", GameConstants.FONTSIZE)
-
+    def font(self, size):
+        font = pygame.font.SysFont("monospace", size)
         # Generate test char
-        test = self.font.render("a", 1, (0, 0, 0))
+        test = font.render("a", 1, (0, 0, 0))
         # Calc line sizes
-        self.line_width = test.get_width()
-        self.line_height = test.get_height()
+        line_width = test.get_width()
+        return (font, line_width)
 
     def wrap(self, unsafe, length, break_char):
         """
@@ -100,39 +102,50 @@ class Text:
         safe_lines.append(unsafe)
         return safe_lines
 
-    def get_lines(self, string, break_char, width):
+    def get_lines(self, string, break_char, width, scale):
         """
         Wraps text and renders text as font
         Returns list of font renders
         """
 
+        # Font Size
+        font_size = GameConstants.FONTSIZE * scale
+        font, line_width = self.font(font_size)
+
         # Get wrapped text
         if width:
-            lines = self.wrap(string, width//self.line_width, break_char)
+            lines = self.wrap(string, width//line_width, break_char)
         else:
             lines = [string]
 
         # Render font
         labels = []
         for line in lines:
-            labels.append(self.font.render(line, 1, (255, 255, 0)))
+            render = font.render(line, 1, (255, 255, 0))
+            labels.append(render)
 
         return labels
 
-    def get_label(self, string, break_char = "", width = None, height = None):
+    def get_label(self, string, break_char = "", *, width = None, height = None, scale = 1):
         """
         Generates text in a given area, wrapped at :break_char:
         Returns PyGame surface
         """
 
+        # Scaling
+        if width:
+            width = int(width * (scale**-1))
+        if height:
+            height = int(height * (scale**-1))
+
         # Get labels
-        labels = self.get_lines(string, break_char, width)
+        labels = self.get_lines(string, break_char, width, scale)
 
         # Generate blank surface
         if not width:
             width = max([f.get_width() for f in labels])
         if not height:
-            height = sum([self.line_height+2 for _ in labels])
+            height = sum([f.get_height()+2 for f in labels])
         surface = pygame.Surface((width, height), pygame.SRCALPHA, 32)
         surface = surface.convert_alpha()
 
@@ -140,7 +153,7 @@ class Text:
         y = 0
         for label in labels:
             surface.blit(label, (0, y))
-            y += self.line_height + 2
+            y += label.get_height() + 2
 
         return surface
 
@@ -168,7 +181,7 @@ class Score:
 
     @property
     def label(self):
-        return self.text.get_label(self.disp_score, "/", GameConstants.GAMEWIDTH, GameConstants.GAMEHEIGHT)
+        return self.text.get_label(self.disp_score, "/", width=GameConstants.GAMEWIDTH, height=GameConstants.GAMEHEIGHT)
 
     @property
     def attempts(self):
@@ -412,6 +425,9 @@ class Game:
         # Get the score object
         self.score = Score(self.text)
 
+        # Indicates wether the hit indicator should be displayed
+        self.show_hit = 0
+
 
     def start(self):
         self.clock = pygame.time.Clock()
@@ -494,11 +510,16 @@ class Game:
             score = self.score.label
             self.screen.blit(score, (5, 5))
 
+            # Hit indicator
             if hit:
-                hit_label = self.text.get_label("Hit!")
+                self.show_hit = pygame.time.get_ticks()
+            if self.show_hit > 0 and pygame.time.get_ticks() - self.show_hit <= GameConstants.MOLEHITINDICATE:
+                hit_label = self.text.get_label("Hit!", scale=3)
                 hit_x = (GameConstants.GAMEWIDTH-hit_label.get_width()) / 2
                 hit_y = (GameConstants.GAMEHEIGHT-hit_label.get_height()) / 2
                 self.screen.blit(hit_label, (hit_x, hit_y))
+            else:
+                self.show_hit = 0
 
             # Update display
             self.clock.tick(GameConstants.GAMEMAXFPS)
