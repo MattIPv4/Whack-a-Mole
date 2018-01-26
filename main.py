@@ -39,7 +39,8 @@ class GameConstants:
     MOLECOOLDOWN    = 500 #ms
 
     MOLESTUNNED     = 1000 #ms
-    MOLEHITINDICATE = 500 #ms
+    MOLEHITHUD      = 500 #ms
+    MOLEMISSHUD     = 250 #ms
 
     MOLECHANCE      = 1/30
     MOLECOUNT       = 5
@@ -438,8 +439,9 @@ class Game:
         # Get the score object
         self.score = Score(self.text)
 
-        # Indicates wether the hit indicator should be displayed
+        # Indicates wether the HUD indicators should be displayed
         self.show_hit = 0
+        self.show_miss = 0
 
 
     def start(self):
@@ -450,6 +452,7 @@ class Game:
 
             # Used for score and text display
             hit = False
+            missed = False
 
             # Mouse position
             pos = pygame.mouse.get_pos()
@@ -479,8 +482,14 @@ class Game:
 
                 # Handle cheats (for dev work)
                 if GameConstants.DEBUGMODE and event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_e:
+                        hit = True
+                        missed = False
+                        self.score.hit()
                     if event.key == pygame.K_r:
-                        self.show_hit = pygame.time.get_ticks()
+                        hit = False
+                        missed = True
+                        self.score.miss()
 
                     if event.key == pygame.K_t:
                         self.score.misses = 0
@@ -529,7 +538,7 @@ class Game:
                     "DEBUG": True,
                     "FPS": int(self.clock.get_fps()),
                     "MOLES": "{}/{}".format(GameConstants.MOLECOUNT, GameConstants.HOLEROWS * GameConstants.HOLECOLUMNS),
-                    "KEYS": "R[HL]T[M0]Y[M+5]U[M-5]I[H0]O[H+5]P[H-5]"
+                    "KEYS": "E[H]R[M]T[M0]Y[M+5]U[M-5]I[H0]O[H+5]P[H-5]"
                 }
 
             # Display data readout
@@ -539,13 +548,24 @@ class Game:
             # Hit indicator
             if hit:
                 self.show_hit = pygame.time.get_ticks()
-            if self.show_hit > 0 and pygame.time.get_ticks() - self.show_hit <= GameConstants.MOLEHITINDICATE:
+            if self.show_hit > 0 and pygame.time.get_ticks() - self.show_hit <= GameConstants.MOLEHITHUD:
                 hit_label = self.text.get_label("Hit!", scale=3)
                 hit_x = (GameConstants.GAMEWIDTH-hit_label.get_width()) / 2
-                hit_y = (GameConstants.GAMEHEIGHT-hit_label.get_height()) / 2
+                hit_y = (GameConstants.GAMEHEIGHT - hit_label.get_height()) / 2
                 self.screen.blit(hit_label, (hit_x, hit_y))
             else:
                 self.show_hit = 0
+
+            # Miss indicator
+            if missed:
+                self.show_miss = pygame.time.get_ticks()
+            if self.show_miss > 0 and pygame.time.get_ticks() - self.show_miss <= GameConstants.MOLEMISSHUD:
+                miss_label = self.text.get_label("Miss!", scale=2)
+                miss_x = (GameConstants.GAMEWIDTH-miss_label.get_width()) / 2
+                miss_y = (GameConstants.GAMEHEIGHT + miss_label.get_height()) / 2
+                self.screen.blit(miss_label, (miss_x, miss_y))
+            else:
+                self.show_miss = 0
 
             # Update display
             self.clock.tick(GameConstants.GAMEMAXFPS)
