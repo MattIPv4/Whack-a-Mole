@@ -105,7 +105,7 @@ class Text:
         safe_lines.append(unsafe)
         return safe_lines
 
-    def get_lines(self, string, break_char, width, scale):
+    def get_lines(self, string, break_char, width, scale, color):
         """
         Wraps text and renders text as font
         Returns list of font renders
@@ -124,12 +124,12 @@ class Text:
         # Render font
         labels = []
         for line in lines:
-            render = font.render(line, 1, (255, 255, 0))
+            render = font.render(line, 1, color)
             labels.append(render)
 
         return labels
 
-    def get_label(self, string, break_char = "", *, width = None, height = None, scale = 1):
+    def get_label(self, string, break_char = "", *, width = None, height = None, scale = 1, color = (255, 255, 0)):
         """
         Generates text in a given area, wrapped at :break_char:
         Returns PyGame surface
@@ -142,7 +142,7 @@ class Text:
             height = int(height * (scale**-1))
 
         # Get labels
-        labels = self.get_lines(string, break_char, width, scale)
+        labels = self.get_lines(string, break_char, width, scale, color)
 
         # Generate blank surface
         if not width:
@@ -549,7 +549,7 @@ class Game:
             if hit:
                 self.show_hit = pygame.time.get_ticks()
             if self.show_hit > 0 and pygame.time.get_ticks() - self.show_hit <= GameConstants.MOLEHITHUD:
-                hit_label = self.text.get_label("Hit!", scale=3)
+                hit_label = self.text.get_label("Hit!", scale=3, color=(255, 50, 0))
                 hit_x = (GameConstants.GAMEWIDTH-hit_label.get_width()) / 2
                 hit_y = (GameConstants.GAMEHEIGHT - hit_label.get_height()) / 2
                 self.screen.blit(hit_label, (hit_x, hit_y))
@@ -560,7 +560,7 @@ class Game:
             if missed:
                 self.show_miss = pygame.time.get_ticks()
             if self.show_miss > 0 and pygame.time.get_ticks() - self.show_miss <= GameConstants.MOLEMISSHUD:
-                miss_label = self.text.get_label("Miss!", scale=2)
+                miss_label = self.text.get_label("Miss!", scale=2, color=(0, 150, 255))
                 miss_x = (GameConstants.GAMEWIDTH-miss_label.get_width()) / 2
                 miss_y = (GameConstants.GAMEHEIGHT + miss_label.get_height()) / 2
                 self.screen.blit(miss_label, (miss_x, miss_y))
