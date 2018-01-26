@@ -16,6 +16,8 @@ class GameConstants:
     Stores all the constants used in the game
     """
 
+    DEBUGMODE       = True
+
     # Game
     GAMEWIDTH       = 500
     GAMEHEIGHT      = 750
@@ -180,20 +182,31 @@ class Score:
             return int(1 + (self.score // GameConstants.LEVELGAP))
 
     @property
-    def label(self):
-        return self.text.get_label(self.disp_score, "/", width=GameConstants.GAMEWIDTH, height=GameConstants.GAMEHEIGHT)
-
-    @property
     def attempts(self):
         return self.hits + self.misses
 
-    @property
-    def disp_score(self):
+    def disp_score(self, ext_data):
+        # Generate hit/miss data
         hits = [self.hits, 0 if self.attempts==0 else self.hits/self.attempts*100]
         misses = [self.misses, 0 if self.attempts==0 else self.misses/self.attempts*100]
-        return "Score: {:,.0f} / Hits: {:,} ({:,.1f}%) / Misses: {:,} ({:,.1f}%) / Level: {:,.0f}".format(
+
+        # Generate score text
+        text = "Score: {:,.0f} / Hits: {:,} ({:,.1f}%) / Misses: {:,} ({:,.1f}%) / Level: {:,.0f}".format(
             self.score, hits[0], hits[1], misses[0], misses[1], self.level
         )
+
+        # Add any extra readout data
+        if ext_data:
+            ext_data_comp = []
+            for key, val in ext_data.items():
+                ext_data_comp.append("{}: {}".format(key, val))
+            ext_data = " / ".join(ext_data_comp)
+            text += " / {}".format(ext_data)
+
+        return text
+
+    def label(self, ext_data = {}):
+        return self.text.get_label(self.disp_score(ext_data), "/", width=GameConstants.GAMEWIDTH, height=GameConstants.GAMEHEIGHT)
 
     def hit(self):
         self.hits += 1
@@ -465,7 +478,10 @@ class Game:
                         self.score.miss()
 
                 # Handle cheats (for dev work)
-                if event.type == pygame.KEYDOWN:
+                if GameConstants.DEBUGMODE and event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_r:
+                        self.show_hit = pygame.time.get_ticks()
+
                     if event.key == pygame.K_t:
                         self.score.misses = 0
                     if event.key == pygame.K_y:
@@ -506,9 +522,19 @@ class Game:
                     pos = mole.get_hole_pos()
                     self.screen.blit(mole.image, pos)
 
-            # Display score
-            score = self.score.label
-            self.screen.blit(score, (5, 5))
+            # Debug data for readout
+            debug_data = {}
+            if GameConstants.DEBUGMODE:
+                debug_data = {
+                    "DEBUG": True,
+                    "FPS": int(self.clock.get_fps()),
+                    "MOLES": "{}/{}".format(GameConstants.MOLECOUNT, GameConstants.HOLEROWS * GameConstants.HOLECOLUMNS),
+                    "KEYS": "R[HL]T[M0]Y[M+5]U[M-5]I[H0]O[H+5]P[H-5]"
+                }
+
+            # Display data readout
+            data = self.score.label(debug_data)
+            self.screen.blit(data, (5, 5))
 
             # Hit indicator
             if hit:
