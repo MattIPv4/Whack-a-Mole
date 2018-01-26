@@ -26,14 +26,14 @@ class Game:
 
         # Create pygame screen
         self.screen = display.set_mode((Constants.GAMEWIDTH, Constants.GAMEHEIGHT))
-        display.set_caption(Constants.TITLE)
+        display.set_caption(Constants.TEXTTITLE)
 
         # Load background
-        self.img_background = image.load(Constants.BACKGROUND)
+        self.img_background = image.load(Constants.IMAGEBACKGROUND)
         self.img_background = transform.scale(self.img_background, (Constants.GAMEWIDTH, Constants.GAMEHEIGHT))
 
         # Load hole
-        self.img_hole = image.load(Constants.HOLE)
+        self.img_hole = image.load(Constants.IMAGEHOLE)
         self.img_hole = transform.scale(self.img_hole, (Constants.HOLEWIDTH, Constants.HOLEHEIGHT))
 
         # Load moles

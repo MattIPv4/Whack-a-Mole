@@ -49,20 +49,20 @@ class MoleConstants:
 
 class TextConstants:
 
-    TITLE           = "Whack a Mole"
-    FONTSIZE        = 15
+    TEXTTITLE       = "Whack a Mole"
+    TEXTFONTSIZE    = 15
 
 
 class ImageConstants:
 
     IMAGEBASE       = "assets/"
 
-    BACKGROUND      = IMAGEBASE + "background.png"
+    IMAGEBACKGROUND = IMAGEBASE + "background.png"
 
-    MOLENORMAL      = IMAGEBASE + "mole.png"
-    MOLEHIT         = IMAGEBASE + "mole_hit.png"
+    IMAGEMOLENORMAL = IMAGEBASE + "mole.png"
+    IMAGEMOLEHIT    = IMAGEBASE + "mole_hit.png"
 
-    HOLE            = IMAGEBASE + "hole.png"
+    IMAGEHOLE       = IMAGEBASE + "hole.png"
 
 
 class Constants(GameConstants, LevelConstants, HoleConstants, MoleConstants, TextConstants, ImageConstants):

@@ -56,7 +56,7 @@ class Text:
         """
 
         # Font Size
-        font_size = TextConstants.FONTSIZE * scale
+        font_size = TextConstants.TEXTFONTSIZE * scale
         font, line_width = self.font(font_size)
 
         # Get wrapped text

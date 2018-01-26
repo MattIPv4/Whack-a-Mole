@@ -19,9 +19,9 @@ class Mole:
 
     def __init__(self):
         # Load images
-        self.img_normal = image.load(ImageConstants.MOLENORMAL)
+        self.img_normal = image.load(ImageConstants.IMAGEMOLENORMAL)
         self.img_normal = transform.scale(self.img_normal, (MoleConstants.MOLEWIDTH, MoleConstants.MOLEHEIGHT))
-        self.img_hit = image.load(ImageConstants.MOLEHIT)
+        self.img_hit = image.load(ImageConstants.IMAGEMOLEHIT)
         self.img_hit = transform.scale(self.img_hit, (MoleConstants.MOLEWIDTH, MoleConstants.MOLEHEIGHT))
 
         # State of showing animation
