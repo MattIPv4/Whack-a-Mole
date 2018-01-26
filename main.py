@@ -7,7 +7,7 @@ A simple Whack a Mole game written with PyGame
 :copyright: (c) 2018 Matt Cowley (IPv4)
 """
 
-from src.main import Game
+from src.game import Game
 
 theGame = Game()
 theGame.run()
