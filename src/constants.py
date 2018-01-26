@@ -29,6 +29,12 @@ class HoleConstants:
     HOLEROWS        = 4
     HOLECOLUMNS     = 3
 
+    # Checks
+    if HOLEHEIGHT*HOLEROWS > GameConstants.GAMEHEIGHT:
+        raise ValueError("HOLEROWS or HOLEHEIGHT too high (or GAMEHEIGHT too small)")
+    if HOLEWIDTH*HOLECOLUMNS > GameConstants.GAMEWIDTH:
+        raise ValueError("HOLECOLUMNS or HOLEWIDTH too high (or GAMEWIDTH too small)")
+
 
 class MoleConstants:
 
@@ -45,6 +51,10 @@ class MoleConstants:
     MOLECOUNT       = 5
     MOLEUPMIN       = 0.3 #s
     MOLEUPMAX       = 2 #s
+
+    # Checks
+    if MOLECOUNT > HoleConstants.HOLEROWS*HoleConstants.HOLECOLUMNS:
+        raise ValueError("MOLECOUNT too high")
 
 
 class TextConstants:
@@ -72,11 +82,3 @@ class Constants(GameConstants, LevelConstants, HoleConstants, MoleConstants, Tex
 
     DEBUGMODE       = True
     LEFTMOUSEBUTTON = 1
-
-    # Checks
-    if MoleConstants.MOLECOUNT > HoleConstants.HOLEROWS*HoleConstants.HOLECOLUMNS:
-        raise ValueError("MOLECOUNT too high")
-    if HoleConstants.HOLEHEIGHT*HoleConstants.HOLEROWS > GameConstants.GAMEHEIGHT:
-        raise ValueError("HOLEROWS or HOLEHEIGHT too high (or GAMEHEIGHT too small)")
-    if HoleConstants.HOLEWIDTH*HoleConstants.HOLECOLUMNS > GameConstants.GAMEWIDTH:
-        raise ValueError("HOLECOLUMNS or HOLEWIDTH too high (or GAMEWIDTH too small)")
