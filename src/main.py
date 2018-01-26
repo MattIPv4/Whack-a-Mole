@@ -95,11 +95,11 @@ class Game:
             if Constants.DEBUGMODE and e.type == KEYDOWN:
                 if e.key == K_e:
                     hit = True
-                    missed = False
+                    miss = False
                     self.score.hit()
                 if e.key == K_r:
                     hit = False
-                    missed = True
+                    miss = True
                     self.score.miss()
 
                 if e.key == K_t:
