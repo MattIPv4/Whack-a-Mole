@@ -75,7 +75,7 @@ class Mole:
 
         return (timeMin, timeMax)
 
-    def do_display(self, holes, level):
+    def do_display(self, holes, level, do_tick=True):
         # If in cooldown
         if self.cooldown != 0:
             if time.get_ticks() - self.cooldown < MoleConstants.MOLECOOLDOWN:
@@ -84,38 +84,41 @@ class Mole:
                 self.cooldown = 0
                 return [False, 1, self.last_hole]
 
-        # Random choice if not showing
-        new_hole = False
-        if self.showing_state == 0 and holes:
-            # Reset
-            self.show_frame = 0
-            self.hit = False
+        # If doing a tick
+        if do_tick:
 
-            # Pick
-            random = randint(0, self.chance(level))
-            if random == 0:
-                self.showing_state = 1
-                self.showing_counter = 0
+            # Random choice if not showing
+            new_hole = False
+            if self.showing_state == 0 and holes:
+                # Reset
+                self.show_frame = 0
+                self.hit = False
 
-                self.show_time = randint(*self.timeLimits(level))
+                # Pick
+                random = randint(0, self.chance(level))
+                if random == 0:
+                    self.showing_state = 1
+                    self.showing_counter = 0
 
-                # Pick a new hole, don't pick the last one, don't infinite loop
-                self.current_hole = self.last_hole
-                if len(holes) > 1 or self.current_hole != holes[0]:
-                    while self.current_hole == self.last_hole:
-                        self.current_hole = choice(holes)
-                    self.last_hole = self.current_hole
-                    new_hole = True
+                    self.show_time = randint(*self.timeLimits(level))
 
-        # Show as popped up for a bit
-        if self.showing_state == 1 and self.showing_counter != 0:
-            if time.get_ticks() - self.showing_counter >= self.show_time:
-                self.showing_state = -1
-                self.showing_counter = 0
+                    # Pick a new hole, don't pick the last one, don't infinite loop
+                    self.current_hole = self.last_hole
+                    if len(holes) > 1 or self.current_hole != holes[0]:
+                        while self.current_hole == self.last_hole:
+                            self.current_hole = choice(holes)
+                        self.last_hole = self.current_hole
+                        new_hole = True
 
-        # Return if game should display, including new hole data
-        if new_hole:
-            return [True, 0, self.current_hole]
+            # Show as popped up for a bit
+            if self.showing_state == 1 and self.showing_counter != 0:
+                if time.get_ticks() - self.showing_counter >= self.show_time:
+                    self.showing_state = -1
+                    self.showing_counter = 0
+
+            # Return if game should display, including new hole data
+            if new_hole:
+                return [True, 0, self.current_hole]
 
         # Return if game should display
         return [(not self.showing_state==0)]

@@ -18,9 +18,10 @@ from src.score import Score
 class Game:
     """
     Handles the main game
+    Takes :time: in seconds for game timer
     """
 
-    def __init__(self):
+    def __init__(self, time=None):
         # Init pygame
         init()
 
@@ -58,9 +59,25 @@ class Game:
         # Get the score object
         self.score = Score(self.text)
 
-        # Indicates wether the HUD indicators should be displayed
+        # Indicates whether the HUD indicators should be displayed
         self.show_hit = 0
         self.show_miss = 0
+
+        # Allow for game timer
+        self.timer = time
+        self.timer_start = 0
+
+        # Run
+        self.run()
+
+    @property
+    def timerData(self):
+        if self.timer is not None and self.timer_start != 0:
+            remain = (time.get_ticks() - self.timer_start) / 1000
+            remain = self.timer - remain
+            endGame = True if remain <= 0 else False
+            return (remain, endGame)
+        return (None, False)
 
     def loop_events(self):
 
@@ -76,50 +93,65 @@ class Game:
                 self.loop = False
                 break
 
-            # Handle click
-            if e.type == MOUSEBUTTONDOWN and e.button == Constants.LEFTMOUSEBUTTON:
-                miss = True
-                for mole in self.moles:
-                    if mole.is_hit(pos) == 1:  # Hit
+            gameTime, endGame = self.timerData
+
+            if not endGame:
+
+                # Handle click
+                if e.type == MOUSEBUTTONDOWN and e.button == Constants.LEFTMOUSEBUTTON:
+
+                    # Start timer if not started
+                    if self.timer is not None and self.timer_start == 0:
+                        self.timer_start = time.get_ticks()
+
+                    else:
+                        # Handle hit/miss
+                        miss = True
+                        for mole in self.moles:
+                            if mole.is_hit(pos) == 1:  # Hit
+                                hit = True
+                                miss = False
+                            if mole.is_hit(pos) == 2:  # Hit but stunned
+                                miss = False
+
+                        if hit:
+                            self.score.hit()
+                        if miss:
+                            self.score.miss()
+
+                # Handle cheats (for dev work)
+                if Constants.DEBUGMODE and e.type == KEYDOWN:
+                    if e.key == K_e:
                         hit = True
                         miss = False
-                    if mole.is_hit(pos) == 2:  # Hit but stunned
-                        miss = False
+                        self.score.hit()
+                    if e.key == K_r:
+                        hit = False
+                        miss = True
+                        self.score.miss()
 
-                if hit:
-                    self.score.hit()
-                if miss:
-                    self.score.miss()
+                    if e.key == K_t:
+                        self.score.misses = 0
+                    if e.key == K_y:
+                        self.score.misses += 5
+                    if e.key == K_u:
+                        self.score.misses -= 5
 
-            # Handle cheats (for dev work)
-            if Constants.DEBUGMODE and e.type == KEYDOWN:
-                if e.key == K_e:
-                    hit = True
-                    miss = False
-                    self.score.hit()
-                if e.key == K_r:
-                    hit = False
-                    miss = True
-                    self.score.miss()
-
-                if e.key == K_t:
-                    self.score.misses = 0
-                if e.key == K_y:
-                    self.score.misses += 5
-                if e.key == K_u:
-                    self.score.misses -= 5
-
-                if e.key == K_i:
-                    self.score.hits = 0
-                if e.key == K_o:
-                    self.score.hits += 5
-                if e.key == K_p:
-                    self.score.hits -= 5
+                    if e.key == K_i:
+                        self.score.hits = 0
+                    if e.key == K_o:
+                        self.score.hits += 5
+                    if e.key == K_p:
+                        self.score.hits -= 5
 
         return (hit, miss)
 
 
     def loop_display(self, hit, miss):
+        gameTime, endGame = self.timerData
+        if not gameTime and self.timer:
+            gameTime = -1
+
         # Display bg
         self.screen.blit(self.img_background, (0, 0))
 
@@ -130,7 +162,7 @@ class Game:
         # Display moles
         for mole in self.moles:
             holes = [f for f in self.holes if f not in self.used_holes]
-            mole_display = mole.do_display(holes, self.score.level)
+            mole_display = mole.do_display(holes, self.score.level, not endGame)
 
             # If new/old hole given
             if len(mole_display) > 1:
@@ -143,7 +175,7 @@ class Game:
             # If should display
             if mole_display[0]:
                 # Get pos and display
-                pos = mole.get_hole_pos()
+                pos = mole.get_hole_pos(not endGame)
                 self.screen.blit(mole.image, pos)
 
         # Debug data for readout
@@ -157,30 +189,40 @@ class Game:
             }
 
         # Display data readout
-        data = self.score.label(debug_data)
+        data = self.score.label(timer=gameTime,debug=debug_data)
         self.screen.blit(data, (5, 5))
 
-        # Hit indicator
-        if hit:
-            self.show_hit = time.get_ticks()
-        if self.show_hit > 0 and time.get_ticks() - self.show_hit <= Constants.MOLEHITHUD:
-            hit_label = self.text.get_label("Hit!", scale=3, color=(255, 50, 0))
-            hit_x = (Constants.GAMEWIDTH - hit_label.get_width()) / 2
-            hit_y = (Constants.GAMEHEIGHT - hit_label.get_height()) / 2
-            self.screen.blit(hit_label, (hit_x, hit_y))
-        else:
-            self.show_hit = 0
+        # Display hit/miss indicators
+        if not endGame:
 
-        # Miss indicator
-        if miss:
-            self.show_miss = time.get_ticks()
-        if self.show_miss > 0 and time.get_ticks() - self.show_miss <= Constants.MOLEMISSHUD:
-            miss_label = self.text.get_label("Miss!", scale=2, color=(0, 150, 255))
-            miss_x = (Constants.GAMEWIDTH - miss_label.get_width()) / 2
-            miss_y = (Constants.GAMEHEIGHT + miss_label.get_height()) / 2
-            self.screen.blit(miss_label, (miss_x, miss_y))
-        else:
-            self.show_miss = 0
+            # Hit indicator
+            if hit:
+                self.show_hit = time.get_ticks()
+            if self.show_hit > 0 and time.get_ticks() - self.show_hit <= Constants.MOLEHITHUD:
+                hit_label = self.text.get_label("Hit!", scale=3, color=(255, 50, 0))
+                hit_x = (Constants.GAMEWIDTH - hit_label.get_width()) / 2
+                hit_y = (Constants.GAMEHEIGHT - hit_label.get_height()) / 2
+                self.screen.blit(hit_label, (hit_x, hit_y))
+            else:
+                self.show_hit = 0
+
+            # Miss indicator
+            if miss:
+                self.show_miss = time.get_ticks()
+            if self.show_miss > 0 and time.get_ticks() - self.show_miss <= Constants.MOLEMISSHUD:
+                miss_label = self.text.get_label("Miss!", scale=2, color=(0, 150, 255))
+                miss_x = (Constants.GAMEWIDTH - miss_label.get_width()) / 2
+                miss_y = (Constants.GAMEHEIGHT + miss_label.get_height()) / 2
+                self.screen.blit(miss_label, (miss_x, miss_y))
+            else:
+                self.show_miss = 0
+
+        # Time's up indicator
+        if endGame:
+            timer_label = self.text.get_label("Time's up!", scale=3, color=(0, 150, 255))
+            timer_x = (Constants.GAMEWIDTH - timer_label.get_width()) / 2
+            timer_y = (Constants.GAMEHEIGHT - timer_label.get_height()) / 2
+            self.screen.blit(timer_label, (timer_x, timer_y))
 
     def start(self):
         self.clock = time.Clock()
@@ -193,6 +235,7 @@ class Game:
 
             # Do all render
             self.loop_display(hit, miss)
+
 
             # Update display
             self.clock.tick(Constants.GAMEMAXFPS)

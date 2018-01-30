@@ -36,7 +36,7 @@ class Score:
     def attempts(self):
         return self.hits + self.misses
 
-    def disp_score(self, ext_data):
+    def disp_score(self, timer, debug):
         # Generate hit/miss data
         hits = [self.hits, 0 if self.attempts==0 else self.hits/self.attempts*100]
         misses = [self.misses, 0 if self.attempts==0 else self.misses/self.attempts*100]
@@ -46,18 +46,26 @@ class Score:
             self.score, hits[0], hits[1], misses[0], misses[1], self.level
         )
 
+        # Display timer
+        if timer:
+            display = None
+            if timer == -1: display = "Click to begin..."
+            if timer < 0: timer = 0
+            if not display: display = "{:,.0f}s".format(timer)
+            text += " / Time Remaining: {}".format(display)
+
         # Add any extra readout data
-        if ext_data:
+        if debug:
             ext_data_comp = []
-            for key, val in ext_data.items():
+            for key, val in debug.items():
                 ext_data_comp.append("{}: {}".format(key, val))
             ext_data = " / ".join(ext_data_comp)
             text += " / {}".format(ext_data)
 
         return text
 
-    def label(self, ext_data = {}):
-        return self.text.get_label(self.disp_score(ext_data), "/", width=GameConstants.GAMEWIDTH, height=GameConstants.GAMEHEIGHT)
+    def label(self, *, timer = None, debug = {}):
+        return self.text.get_label(self.disp_score(timer, debug), "/", width=GameConstants.GAMEWIDTH, height=GameConstants.GAMEHEIGHT)
 
     def hit(self):
         self.hits += 1
