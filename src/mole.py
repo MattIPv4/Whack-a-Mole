@@ -101,7 +101,7 @@ class Mole:
 
                 # Pick a new hole, don't pick the last one, don't infinite loop
                 self.current_hole = self.last_hole
-                if len(holes)>1 or self.current_hole != holes[0]:
+                if len(holes) > 1 or self.current_hole != holes[0]:
                     while self.current_hole == self.last_hole:
                         self.current_hole = choice(holes)
                     self.last_hole = self.current_hole
@@ -184,7 +184,7 @@ class Mole:
                 # Check y
                 if mouseY >= moleY1 and mouseY <= moleY2:
                     # Check is not stunned
-                    if self.hit == False:
+                    if self.hit is False:
                         self.hit = time.get_ticks()
                         return 1
                     else:

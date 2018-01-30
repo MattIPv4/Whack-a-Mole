@@ -9,6 +9,9 @@ A simple Whack a Mole game written with PyGame
 
 
 class GameConstants:
+    """
+    Constants used for rendering of main game
+    """
 
     GAMEWIDTH       = 500
     GAMEHEIGHT      = 750
@@ -16,6 +19,9 @@ class GameConstants:
 
 
 class LevelConstants:
+    """
+    Constants used to handle leveling
+    """
 
     LEVELGAP        = 10 #score
     LEVELMOLESPEED  = 5 #% faster
@@ -23,6 +29,9 @@ class LevelConstants:
 
 
 class HoleConstants:
+    """
+    Constants used in the holes
+    """
 
     HOLEWIDTH       = 100
     HOLEHEIGHT      = int(HOLEWIDTH*(3/8))
@@ -37,8 +46,11 @@ class HoleConstants:
 
 
 class MoleConstants:
+    """
+    Constants used for mole generation and calculations
+    """
 
-    MOLEWIDTH       = int(HoleConstants.HOLEWIDTH*(2/3))
+    MOLEWIDTH       = int( HoleConstants.HOLEWIDTH*(2/3) )
     MOLEHEIGHT      = int(MOLEWIDTH)
     MOLEDEPTH       = 15 #% of height
     MOLECOOLDOWN    = 500 #ms
@@ -58,12 +70,18 @@ class MoleConstants:
 
 
 class TextConstants:
+    """
+    Constants used for text rendering
+    """
 
     TEXTTITLE       = "Whack a Mole"
     TEXTFONTSIZE    = 15
 
 
 class ImageConstants:
+    """
+    Constants that are image based
+    """
 
     IMAGEBASE       = "assets/"
 
@@ -80,5 +98,5 @@ class Constants(GameConstants, LevelConstants, HoleConstants, MoleConstants, Tex
     Stores all the constants used in the game
     """
 
-    DEBUGMODE       = True
+    DEBUGMODE       = False
     LEFTMOUSEBUTTON = 1
