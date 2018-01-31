@@ -21,7 +21,7 @@ class Game:
     Takes :time: in seconds for game timer
     """
 
-    def __init__(self, time=None):
+    def __init__(self, time: int = None, *, autostart: bool =True):
         # Init pygame
         init()
 
@@ -68,7 +68,8 @@ class Game:
         self.timer_start = 0
 
         # Run
-        self.run()
+        if autostart:
+            self.run()
 
     @property
     def timerData(self):
