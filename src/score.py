@@ -64,8 +64,9 @@ class Score:
 
         return text
 
-    def label(self, *, timer = None, debug = {}):
-        return self.text.get_label(self.disp_score(timer, debug), "/", width=GameConstants.GAMEWIDTH, height=GameConstants.GAMEHEIGHT)
+    def label(self, *, timer = None, debug = {}, size = 1):
+        return self.text.get_label(self.disp_score(timer, debug), "/", scale=size,
+                                   width=GameConstants.GAMEWIDTH)
 
     def hit(self):
         self.hits += 1

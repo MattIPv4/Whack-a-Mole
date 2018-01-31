@@ -189,7 +189,7 @@ class Game:
             }
 
         # Display data readout
-        data = self.score.label(timer=gameTime,debug=debug_data)
+        data = self.score.label(timer=gameTime,debug=debug_data,size=(1.5 if endGame else 1))
         self.screen.blit(data, (5, 5))
 
         # Display hit/miss indicators
