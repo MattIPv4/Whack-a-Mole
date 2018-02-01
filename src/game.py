@@ -22,7 +22,7 @@ class Game:
     Takes :time: in seconds for game timer
     """
 
-    def __init__(self, time: int = None, *, autostart: bool = True):
+    def __init__(self, *, timer: int = None, autostart: bool = True):
         # Init pygame
         init()
 

@@ -8,4 +8,4 @@ A simple Whack a Mole game written with PyGame
 """
 
 from src.game import Game
-theGame = Game(60)
+theGame = Game(timer=60)
