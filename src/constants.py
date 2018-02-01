@@ -91,9 +91,22 @@ class ImageConstants:
     IMAGEMOLEHIT    = IMAGEBASE + "mole_hit.png"
 
     IMAGEHOLE       = IMAGEBASE + "hole.png"
+    IMAGEMALLET     = IMAGEBASE + "mallet.png"
 
 
-class Constants(GameConstants, LevelConstants, HoleConstants, MoleConstants, TextConstants, ImageConstants):
+class MalletConstants:
+    """
+    Constants used for rendering the mallet
+    """
+
+    MALLETWIDTH     = int(HoleConstants.HOLEWIDTH)
+    MALLETHEIGHT    = int(MALLETWIDTH)
+
+    MALLETROTNORM   = 15
+    MALLETROTHIT    = 30
+
+
+class Constants(GameConstants, LevelConstants, HoleConstants, MoleConstants, TextConstants, ImageConstants, MalletConstants):
     """
     Stores all the constants used in the game
     """

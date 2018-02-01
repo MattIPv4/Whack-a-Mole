@@ -38,6 +38,10 @@ class Game:
         self.img_hole = image.load(Constants.IMAGEHOLE)
         self.img_hole = transform.scale(self.img_hole, (Constants.HOLEWIDTH, Constants.HOLEHEIGHT))
 
+        # Load mallet
+        self.img_mallet = image.load(Constants.IMAGEMALLET)
+        self.img_mallet = transform.scale(self.img_mallet, (Constants.MALLETWIDTH, Constants.MALLETHEIGHT))
+
         # Load moles
         self.moles = [Mole() for _ in range(Constants.MOLECOUNT)]
 
@@ -182,7 +186,12 @@ class Game:
                 pos = mole.get_hole_pos(not endGame)
                 self.screen.blit(mole.image, pos)
 
-        # TODO: Display hammer at mouse, use :clicked: to animate for one cycle only
+        # Hammer
+        thisHammer = transform.rotate(self.img_mallet.copy(), (Constants.MALLETROTHIT if clicked else Constants.MALLETROTNORM))
+        hammer_x, hammer_y = mouse.get_pos()
+        hammer_x -= thisHammer.get_width()/5
+        hammer_y -= thisHammer.get_height()/4
+        self.screen.blit(thisHammer, (hammer_x, hammer_y))
 
         # Fade screen if not started or has ended
         if self.timer and (endGame or gameTime == -1):
