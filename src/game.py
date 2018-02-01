@@ -7,7 +7,8 @@ A simple Whack a Mole game written with PyGame
 :copyright: (c) 2018 Matt Cowley (IPv4)
 """
 
-from pygame import init, quit, display, image, transform, time, mouse, event, QUIT, MOUSEBUTTONDOWN, KEYDOWN, \
+from pygame import init, quit, display, image, transform, time, mouse, event, Surface, \
+    SRCALPHA, QUIT, MOUSEBUTTONDOWN, KEYDOWN, \
     K_e, K_r, K_t, K_y, K_u, K_i, K_o, K_p
 from src.constants import Constants
 from src.mole import Mole
@@ -84,6 +85,7 @@ class Game:
 
         hit = False
         miss = False
+        clicked = False
         pos = mouse.get_pos()
 
         # Handle PyGame events
@@ -107,6 +109,7 @@ class Game:
 
                     else:
                         # Handle hit/miss
+                        clicked = True
                         miss = True
                         for mole in self.moles:
                             if mole.is_hit(pos) == 1:  # Hit
@@ -145,10 +148,10 @@ class Game:
                     if e.key == K_p:
                         self.score.hits -= 5
 
-        return (hit, miss)
+        return (clicked, hit, miss)
 
 
-    def loop_display(self, hit, miss):
+    def loop_display(self, clicked, hit, miss):
         gameTime, endGame = self.timerData
         if not gameTime and self.timer:
             gameTime = -1
@@ -178,6 +181,13 @@ class Game:
                 # Get pos and display
                 pos = mole.get_hole_pos(not endGame)
                 self.screen.blit(mole.image, pos)
+
+        # Fade screen if not started or has ended
+        if self.timer and (endGame or gameTime == -1):
+            overlay = Surface((Constants.GAMEWIDTH, Constants.GAMEHEIGHT), SRCALPHA, 32)
+            overlay = overlay.convert_alpha()
+            overlay.fill((150, 150, 150, 0.6*255))
+            self.screen.blit(overlay, (0,0))
 
         # Debug data for readout
         debug_data = {}
@@ -218,8 +228,15 @@ class Game:
             else:
                 self.show_miss = 0
 
+        # Click to start indicator
+        if self.timer and gameTime == -1:
+            timer_label = self.text.get_label("Click to begin...", scale=2, color=(0, 255, 255))
+            timer_x = (Constants.GAMEWIDTH - timer_label.get_width()) / 2
+            timer_y = (Constants.GAMEHEIGHT - timer_label.get_height()) / 2
+            self.screen.blit(timer_label, (timer_x, timer_y))
+
         # Time's up indicator
-        if endGame:
+        if self.timer and endGame:
             timer_label = self.text.get_label("Time's up!", scale=3, color=(0, 150, 255))
             timer_x = (Constants.GAMEWIDTH - timer_label.get_width()) / 2
             timer_y = (Constants.GAMEHEIGHT - timer_label.get_height()) / 2
@@ -232,10 +249,10 @@ class Game:
         while self.loop:
 
             # Do all events
-            hit, miss = self.loop_events()
+            clicked, hit, miss = self.loop_events()
 
             # Do all render
-            self.loop_display(hit, miss)
+            self.loop_display(clicked, hit, miss)
 
 
             # Update display
