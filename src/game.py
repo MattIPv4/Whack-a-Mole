@@ -182,6 +182,8 @@ class Game:
                 pos = mole.get_hole_pos(not endGame)
                 self.screen.blit(mole.image, pos)
 
+        # TODO: Display hammer at mouse, use :clicked: to animate for one cycle only
+
         # Fade screen if not started or has ended
         if self.timer and (endGame or gameTime == -1):
             overlay = Surface((Constants.GAMEWIDTH, Constants.GAMEHEIGHT), SRCALPHA, 32)
