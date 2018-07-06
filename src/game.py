@@ -69,7 +69,7 @@ class Game:
         self.show_miss = 0
 
         # Allow for game timer
-        self.timer = time
+        self.timer = timer
         self.timer_start = 0
 
         # Run
