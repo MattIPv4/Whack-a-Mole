@@ -18,7 +18,8 @@ class Text:
     """
 
     def font(self, size):
-        f = font.SysFont("monospace", int(size))
+        # f = font.SysFont("monospace", int(size))
+        f = font.Font(TextConstants.TEXTFONTFILE, int(size))
         # Generate test char
         test = f.render("a", 1, (0, 0, 0))
         # Calc line sizes

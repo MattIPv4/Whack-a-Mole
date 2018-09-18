@@ -78,6 +78,7 @@ class TextConstants:
 
     TEXTTITLE       = "Whack a Mole"
     TEXTFONTSIZE    = 15
+    TEXTFONTFILE    = "assets/OxygenMono-Regular.ttf"
 
 
 class ImageConstants:
