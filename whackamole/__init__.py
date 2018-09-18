@@ -7,4 +7,4 @@ A simple Whack a Mole game written with PyGame
 :copyright: (c) 2018 Matt Cowley (IPv4)
 """
 
-# Makes this directory a package
+from .game import Game

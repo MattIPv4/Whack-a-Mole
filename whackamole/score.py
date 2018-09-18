@@ -7,8 +7,8 @@ A simple Whack a Mole game written with PyGame
 :copyright: (c) 2018 Matt Cowley (IPv4)
 """
 
-from src.constants import LevelConstants, GameConstants
-from src.text import Text
+from .constants import LevelConstants, GameConstants
+from .text import Text
 
 
 class Score:
@@ -23,11 +23,11 @@ class Score:
 
     @property
     def score(self):
-        return (self.hits - (self.misses/2)) * 2
+        return (self.hits - (self.misses / 2)) * 2
 
     @property
     def level(self):
-        if self.score<0:
+        if self.score < 0:
             return 1
         else:
             return int(1 + (self.score // LevelConstants.LEVELGAP))
@@ -38,8 +38,8 @@ class Score:
 
     def disp_score(self, timer, debug):
         # Generate hit/miss data
-        hits = [self.hits, 0 if self.attempts==0 else self.hits/self.attempts*100]
-        misses = [self.misses, 0 if self.attempts==0 else self.misses/self.attempts*100]
+        hits = [self.hits, 0 if self.attempts == 0 else self.hits / self.attempts * 100]
+        misses = [self.misses, 0 if self.attempts == 0 else self.misses / self.attempts * 100]
 
         # Generate score text
         text = "Score: {:,.0f} / Hits: {:,} ({:,.1f}%) / Misses: {:,} ({:,.1f}%) / Level: {:,.0f}".format(
@@ -64,9 +64,9 @@ class Score:
 
         return text
 
-    def label(self, *, timer = None, debug = {}, size = 1):
+    def label(self, *, timer=None, debug={}, size=1):
         return self.text.get_label(self.disp_score(timer, debug), "/", scale=size,
-                                   width=GameConstants.GAMEWIDTH)
+                                   width=GameConstants.GAMEWIDTH, background=(0, 0, 0, 0.4 * 255))
 
     def hit(self):
         self.hits += 1

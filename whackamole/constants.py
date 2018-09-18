@@ -7,6 +7,8 @@ A simple Whack a Mole game written with PyGame
 :copyright: (c) 2018 Matt Cowley (IPv4)
 """
 
+"""Search for '# !!' in the file to find the most common constant to change."""
+
 
 class GameConstants:
     """
@@ -35,8 +37,8 @@ class HoleConstants:
 
     HOLEWIDTH       = 100
     HOLEHEIGHT      = int(HOLEWIDTH*(3/8))
-    HOLEROWS        = 4
-    HOLECOLUMNS     = 3
+    HOLEROWS        = 12 # !!
+    HOLECOLUMNS     = 5 # !!
 
     # Checks
     if HOLEHEIGHT*HOLEROWS > GameConstants.GAMEHEIGHT:
@@ -60,7 +62,7 @@ class MoleConstants:
     MOLEMISSHUD     = 250 #ms
 
     MOLECHANCE      = 1/30
-    MOLECOUNT       = 5
+    MOLECOUNT       = 30 # !!
     MOLEUPMIN       = 0.3 #s
     MOLEUPMAX       = 2 #s
 

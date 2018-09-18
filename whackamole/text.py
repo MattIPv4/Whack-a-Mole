@@ -8,7 +8,8 @@ A simple Whack a Mole game written with PyGame
 """
 
 from pygame import font, Surface, SRCALPHA
-from src.constants import TextConstants
+
+from .constants import TextConstants
 
 
 class Text:
@@ -61,7 +62,7 @@ class Text:
 
         # Get wrapped text
         if width:
-            lines = self.wrap(string, width//line_width, break_char)
+            lines = self.wrap(string, width // line_width, break_char)
         else:
             lines = [string]
 
@@ -73,7 +74,8 @@ class Text:
 
         return labels
 
-    def get_label(self, string, break_char = "", *, width = None, height = None, scale = 1, color = (255, 255, 0)):
+    def get_label(self, string, break_char="", *, width=None, height=None, scale=1, color=(255, 255, 0),
+                  background=None):
         """
         Generates text in a given area, wrapped at :break_char:
         Returns PyGame surface
@@ -81,9 +83,9 @@ class Text:
 
         # Scaling
         if width:
-            width = int(width * (scale**-1))
+            width = int(width * (scale ** -1))
         if height:
-            height = int(height * (scale**-1))
+            height = int(height * (scale ** -1))
 
         # Get labels
         labels = self.get_lines(string, break_char, width, scale, color)
@@ -92,9 +94,11 @@ class Text:
         if not width:
             width = max([f.get_width() for f in labels])
         if not height:
-            height = sum([f.get_height()+2 for f in labels])
+            height = sum([f.get_height() + 2 for f in labels])
         surface = Surface((width, height), SRCALPHA, 32)
         surface = surface.convert_alpha()
+        if background:
+            surface.fill(background)
 
         # Add lines
         y = 0

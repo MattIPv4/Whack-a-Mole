@@ -7,9 +7,11 @@ A simple Whack a Mole game written with PyGame
 :copyright: (c) 2018 Matt Cowley (IPv4)
 """
 
-from pygame import image, transform, time
 from random import randint, choice
-from src.constants import ImageConstants, MoleConstants, LevelConstants, HoleConstants
+
+from pygame import image, transform, time
+
+from .constants import ImageConstants, MoleConstants, LevelConstants, HoleConstants
 
 
 class Mole:
@@ -35,8 +37,8 @@ class Mole:
         self.show_time = 0
 
         # Our current hole data
-        self.current_hole = (0,0)
-        self.last_hole = (0,0)
+        self.current_hole = (0, 0)
+        self.last_hole = (0, 0)
 
         # Current frame of showing animation
         self.show_frame = 0
@@ -68,7 +70,7 @@ class Mole:
         level -= 1  # Start at 0
 
         levelTime = 1 - ((LevelConstants.LEVELMOLESPEED / 100) * level)
-        if levelTime < 0: levelTime = 0 # No wait, just up & down
+        if levelTime < 0: levelTime = 0  # No wait, just up & down
 
         timeMin = int(MoleConstants.MOLEUPMIN * 1000 * levelTime)
         timeMax = int(MoleConstants.MOLEUPMAX * 1000 * levelTime)
@@ -121,14 +123,14 @@ class Mole:
                 return [True, 0, self.current_hole]
 
         # Return if game should display
-        return [(not self.showing_state==0)]
+        return [(not self.showing_state == 0)]
 
     def get_base_pos(self):
         holeX, holeY = self.current_hole
-        offset = (HoleConstants.HOLEWIDTH-MoleConstants.MOLEWIDTH)/2
+        offset = (HoleConstants.HOLEWIDTH - MoleConstants.MOLEWIDTH) / 2
 
-        moleX = holeX+offset
-        moleY = (holeY+HoleConstants.HOLEHEIGHT) - (MoleConstants.MOLEHEIGHT*1.2)
+        moleX = holeX + offset
+        moleY = (holeY + HoleConstants.HOLEHEIGHT) - (MoleConstants.MOLEHEIGHT * 1.2)
         return (moleX, moleY)
 
     def get_hole_pos(self, do_tick=True):
@@ -149,7 +151,7 @@ class Mole:
         # Going Up
         if self.showing_state == 1:
             if self.show_frame <= self.frames:
-                frame = MoleConstants.MOLEDEPTH/self.frames * (self.frames-self.show_frame)
+                frame = MoleConstants.MOLEDEPTH / self.frames * (self.frames - self.show_frame)
                 if do_tick: self.show_frame += 1
             else:
                 # Hold
@@ -160,7 +162,7 @@ class Mole:
         if self.showing_state == -1:
             if do_tick: self.show_frame -= 1
             if self.show_frame >= 0:
-                frame = MoleConstants.MOLEDEPTH / self.frames * (self.frames-self.show_frame)
+                frame = MoleConstants.MOLEDEPTH / self.frames * (self.frames - self.show_frame)
             else:
                 # Reset
                 self.showing_state = 0
@@ -168,7 +170,7 @@ class Mole:
                 # Begin cooldown
                 if do_tick: self.cooldown = time.get_ticks()
 
-        moleY += (MoleConstants.MOLEHEIGHT * (frame/100))
+        moleY += (MoleConstants.MOLEHEIGHT * (frame / 100))
 
         return (moleX, moleY)
 
@@ -178,7 +180,7 @@ class Mole:
         # Top Left
         moleX1, moleY1 = self.get_hole_pos(False)
         # Bottom Right
-        moleX2, moleY2 = (moleX1+MoleConstants.MOLEWIDTH, moleY1+MoleConstants.MOLEHEIGHT)
+        moleX2, moleY2 = (moleX1 + MoleConstants.MOLEWIDTH, moleY1 + MoleConstants.MOLEHEIGHT)
 
         # Check is in valid to-be hit state
         if self.showing_state != 0:

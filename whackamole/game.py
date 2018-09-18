@@ -9,11 +9,12 @@ A simple Whack a Mole game written with PyGame
 
 from pygame import init, quit, display, image, transform, time, mouse, event, Surface, \
     SRCALPHA, QUIT, MOUSEBUTTONDOWN, KEYDOWN, \
-    K_e, K_r, K_t, K_y, K_u, K_i, K_o, K_p
-from src.constants import Constants
-from src.mole import Mole
-from src.text import Text
-from src.score import Score
+    K_e, K_r, K_t, K_y, K_u, K_i, K_o, K_p, K_SPACE, K_ESCAPE
+
+from .constants import Constants
+from .mole import Mole
+from .score import Score
+from .text import Text
 
 
 class Game:
@@ -42,20 +43,31 @@ class Game:
         self.img_mallet = image.load(Constants.IMAGEMALLET)
         self.img_mallet = transform.scale(self.img_mallet, (Constants.MALLETWIDTH, Constants.MALLETHEIGHT))
 
+        # Set timer
+        self.timer = timer
+
+        # Reset/initialise data
+        self.reset()
+
+        # Run
+        if autostart:
+            self.run()
+
+    def reset(self):
         # Load moles
         self.moles = [Mole() for _ in range(Constants.MOLECOUNT)]
 
         # Generate hole positions
         self.holes = []
         self.used_holes = []
-        base_row = Constants.GAMEHEIGHT/Constants.HOLEROWS
-        base_column = Constants.GAMEWIDTH/Constants.HOLECOLUMNS
+        base_row = Constants.GAMEHEIGHT / Constants.HOLEROWS
+        base_column = Constants.GAMEWIDTH / Constants.HOLECOLUMNS
         for row in range(Constants.HOLEROWS):
             rowY = base_row * row
-            rowY += (base_row-Constants.HOLEHEIGHT)/2
+            rowY += (base_row - Constants.HOLEHEIGHT) / 2
             for column in range(Constants.HOLECOLUMNS):
-                thisX =  base_column * column
-                thisX += (base_column-Constants.HOLEWIDTH)/2
+                thisX = base_column * column
+                thisX += (base_column - Constants.HOLEWIDTH) / 2
                 self.holes.append((int(thisX), int(rowY)))
 
         # Get the text object
@@ -69,12 +81,7 @@ class Game:
         self.show_miss = 0
 
         # Allow for game timer
-        self.timer = timer
         self.timer_start = 0
-
-        # Run
-        if autostart:
-            self.run()
 
     @property
     def timerData(self):
@@ -127,33 +134,47 @@ class Game:
                         if miss:
                             self.score.miss()
 
-                # Handle cheats (for dev work)
-                if Constants.DEBUGMODE and e.type == KEYDOWN:
-                    if e.key == K_e:
-                        hit = True
-                        miss = False
-                        self.score.hit()
-                    if e.key == K_r:
-                        hit = False
-                        miss = True
-                        self.score.miss()
+                if e.type == KEYDOWN:
 
-                    if e.key == K_t:
-                        self.score.misses = 0
-                    if e.key == K_y:
-                        self.score.misses += 5
-                    if e.key == K_u:
-                        self.score.misses -= 5
+                    # Allow escape to abort attempt
+                    if e.key == K_ESCAPE:
+                        self.reset()
+                        break
 
-                    if e.key == K_i:
-                        self.score.hits = 0
-                    if e.key == K_o:
-                        self.score.hits += 5
-                    if e.key == K_p:
-                        self.score.hits -= 5
+                    # Handle cheats (for dev work)
+                    if Constants.DEBUGMODE:
+                        if e.key == K_e:
+                            hit = True
+                            miss = False
+                            self.score.hit()
+                        if e.key == K_r:
+                            hit = False
+                            miss = True
+                            self.score.miss()
+
+                        if e.key == K_t:
+                            self.score.misses = 0
+                        if e.key == K_y:
+                            self.score.misses += 5
+                        if e.key == K_u:
+                            self.score.misses -= 5
+
+                        if e.key == K_i:
+                            self.score.hits = 0
+                        if e.key == K_o:
+                            self.score.hits += 5
+                        if e.key == K_p:
+                            self.score.hits -= 5
+
+            # End game screen
+            else:
+                if e.type == KEYDOWN:
+                    if e.key == K_SPACE:
+                        # Restart
+                        self.reset()
+                        break
 
         return (clicked, hit, miss)
-
 
     def loop_display(self, clicked, hit, miss):
         gameTime, endGame = self.timerData
@@ -187,18 +208,19 @@ class Game:
                 self.screen.blit(mole.image, pos)
 
         # Hammer
-        thisHammer = transform.rotate(self.img_mallet.copy(), (Constants.MALLETROTHIT if clicked else Constants.MALLETROTNORM))
+        thisHammer = transform.rotate(self.img_mallet.copy(),
+                                      (Constants.MALLETROTHIT if clicked else Constants.MALLETROTNORM))
         hammer_x, hammer_y = mouse.get_pos()
-        hammer_x -= thisHammer.get_width()/5
-        hammer_y -= thisHammer.get_height()/4
+        hammer_x -= thisHammer.get_width() / 5
+        hammer_y -= thisHammer.get_height() / 4
         self.screen.blit(thisHammer, (hammer_x, hammer_y))
 
         # Fade screen if not started or has ended
         if self.timer and (endGame or gameTime == -1):
             overlay = Surface((Constants.GAMEWIDTH, Constants.GAMEHEIGHT), SRCALPHA, 32)
             overlay = overlay.convert_alpha()
-            overlay.fill((150, 150, 150, 0.6*255))
-            self.screen.blit(overlay, (0,0))
+            overlay.fill((100, 100, 100, 0.9 * 255))
+            self.screen.blit(overlay, (0, 0))
 
         # Debug data for readout
         debug_data = {}
@@ -211,7 +233,7 @@ class Game:
             }
 
         # Display data readout
-        data = self.score.label(timer=gameTime,debug=debug_data,size=(1.5 if endGame else 1))
+        data = self.score.label(timer=gameTime, debug=debug_data, size=(1.5 if endGame else 1))
         self.screen.blit(data, (5, 5))
 
         # Display hit/miss indicators
@@ -248,23 +270,28 @@ class Game:
 
         # Time's up indicator
         if self.timer and endGame:
-            timer_label = self.text.get_label("Time's up!", scale=3, color=(0, 150, 255))
-            timer_x = (Constants.GAMEWIDTH - timer_label.get_width()) / 2
-            timer_y = (Constants.GAMEHEIGHT - timer_label.get_height()) / 2
-            self.screen.blit(timer_label, (timer_x, timer_y))
+            timer_label_1 = self.text.get_label("Time's up!", scale=3, color=(0, 150, 255))
+            timer_label_2 = self.text.get_label("Press space to restart...", scale=2, color=(0, 150, 255))
+
+            timer_x_1 = (Constants.GAMEWIDTH - timer_label_1.get_width()) / 2
+            timer_x_2 = (Constants.GAMEWIDTH - timer_label_2.get_width()) / 2
+
+            timer_y_1 = (Constants.GAMEHEIGHT / 2) - timer_label_1.get_height()
+            timer_y_2 = (Constants.GAMEHEIGHT / 2)
+
+            self.screen.blit(timer_label_1, (timer_x_1, timer_y_1))
+            self.screen.blit(timer_label_2, (timer_x_2, timer_y_2))
 
     def start(self):
         self.clock = time.Clock()
         self.loop = True
 
         while self.loop:
-
             # Do all events
             clicked, hit, miss = self.loop_events()
 
             # Do all render
             self.loop_display(clicked, hit, miss)
-
 
             # Update display
             self.clock.tick(Constants.GAMEMAXFPS)
