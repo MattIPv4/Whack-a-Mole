@@ -2,7 +2,7 @@
 
 <!-- Title -->
 <h1 align="center" id="Whack-a-Mole">
-    Whack-a-Mole
+    Whack-a-Mole*2
 </h1>
 
 <!-- Tag line -->
