@@ -39,6 +39,7 @@ class Mole:
         # Our current hole data
         self.current_hole = (0, 0)
         self.last_hole = (0, 0)
+        self.position = -1
 
         # Current frame of showing animation
         self.show_frame = 0
@@ -107,8 +108,9 @@ class Mole:
                     # Pick a new hole, don't pick the last one, don't infinite loop
                     self.current_hole = self.last_hole
                     if len(holes) > 1 or self.current_hole != holes[0]:
-                        while self.current_hole == self.last_hole:
-                            self.current_hole = choice(holes)
+                        while self.current_hole == self.last_hole:  # as long as the holes are the same pick a new one
+                            self.position = randint(0, len(holes)-1)  # define a new position in the class
+                            self.current_hole = holes[self.position]  # use the same position to keep the hole
                         self.last_hole = self.current_hole
                         new_hole = True
 
@@ -175,23 +177,11 @@ class Mole:
         return (moleX, moleY)
 
     def is_hit(self, pos):
-        mouseX, mouseY = pos
+        if pos == self.position:   # if mole gut hit
+            if self.hit is False:  # if mole didn't gut hit yet
+                self.hit = time.get_ticks()  # keep the time when the mole gut hit
+                return 1
+            else:
+                return 2
 
-        # Top Left
-        moleX1, moleY1 = self.get_hole_pos(False)
-        # Bottom Right
-        moleX2, moleY2 = (moleX1 + MoleConstants.MOLEWIDTH, moleY1 + MoleConstants.MOLEHEIGHT)
-
-        # Check is in valid to-be hit state
-        if self.showing_state != 0:
-            # Check x
-            if mouseX >= moleX1 and mouseX <= moleX2:
-                # Check y
-                if mouseY >= moleY1 and mouseY <= moleY2:
-                    # Check is not stunned
-                    if self.hit is False:
-                        self.hit = time.get_ticks()
-                        return 1
-                    else:
-                        return 2
         return False

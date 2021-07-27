@@ -8,8 +8,8 @@ A simple Whack a Mole game written with PyGame
 """
 
 from pygame import init, quit, display, image, transform, time, mouse, event, Surface, \
-    SRCALPHA, QUIT, MOUSEBUTTONDOWN, KEYDOWN, \
-    K_e, K_r, K_t, K_y, K_u, K_i, K_o, K_p, K_SPACE, K_ESCAPE
+    SRCALPHA, QUIT, KEYDOWN, \
+    K_q, K_w, K_e, K_a, K_s, K_d, K_z, K_x, K_c, K_SPACE, K_ESCAPE
 
 from .constants import Constants
 from .mole import Mole
@@ -55,7 +55,7 @@ class Game:
 
     def reset(self):
         # Load moles
-        self.moles = [Mole() for _ in range(Constants.MOLECOUNT)]
+        self.moles = [Mole() for _ in range(Constants.MOLECOUNT)]  # create a List
 
         # Generate hole positions
         self.holes = []
@@ -97,10 +97,10 @@ class Game:
         hit = False
         miss = False
         clicked = False
-        pos = mouse.get_pos()
+        pos = -1
 
         # Handle PyGame events
-        for e in event.get():
+        for e in event.get():  #returns a list of all the events that are currently in the event queue. Doing so empties the queue.
 
             # Handle quit
             if e.type == QUIT:
@@ -111,13 +111,30 @@ class Game:
 
             if not endGame:
 
-                # Handle click
-                if e.type == MOUSEBUTTONDOWN and e.button == Constants.LEFTMOUSEBUTTON:
+                # Handle type create a pos
+                if e.type == KEYDOWN:
+                    if e.key == K_q:
+                        pos = 0
+                    elif e.key == K_w:
+                        pos = 1
+                    elif e.key == K_e:
+                        pos = 2
+                    elif e.key == K_a:
+                        pos = 3
+                    elif e.key == K_s:
+                        pos = 4
+                    elif e.key == K_d:
+                        pos = 5
+                    elif e.key == K_z:
+                        pos = 6
+                    elif e.key == K_x:
+                        pos = 7
+                    elif e.key == K_c:
+                        pos = 8
 
                     # Start timer if not started
                     if self.timer is not None and self.timer_start == 0:
                         self.timer_start = time.get_ticks()
-
                     else:
                         # Handle hit/miss
                         clicked = True
@@ -140,31 +157,6 @@ class Game:
                     if e.key == K_ESCAPE:
                         self.reset()
                         break
-
-                    # Handle cheats (for dev work)
-                    if Constants.DEBUGMODE:
-                        if e.key == K_e:
-                            hit = True
-                            miss = False
-                            self.score.hit()
-                        if e.key == K_r:
-                            hit = False
-                            miss = True
-                            self.score.miss()
-
-                        if e.key == K_t:
-                            self.score.misses = 0
-                        if e.key == K_y:
-                            self.score.misses += 5
-                        if e.key == K_u:
-                            self.score.misses -= 5
-
-                        if e.key == K_i:
-                            self.score.hits = 0
-                        if e.key == K_o:
-                            self.score.hits += 5
-                        if e.key == K_p:
-                            self.score.hits -= 5
 
             # End game screen
             else:

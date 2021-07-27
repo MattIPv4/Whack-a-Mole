@@ -16,7 +16,7 @@ class GameConstants:
     """
 
     GAMEWIDTH       = 500
-    GAMEHEIGHT      = 750
+    GAMEHEIGHT      = 500
     GAMEMAXFPS      = 60
 
 
@@ -37,8 +37,8 @@ class HoleConstants:
 
     HOLEWIDTH       = 100
     HOLEHEIGHT      = int(HOLEWIDTH*(3/8))
-    HOLEROWS        = 12 # !!
-    HOLECOLUMNS     = 5 # !!
+    HOLEROWS        = 3 # !!
+    HOLECOLUMNS     = 3 # !!
 
     # Checks
     if HOLEHEIGHT*HOLEROWS > GameConstants.GAMEHEIGHT:
@@ -62,7 +62,7 @@ class MoleConstants:
     MOLEMISSHUD     = 250 #ms
 
     MOLECHANCE      = 1/30
-    MOLECOUNT       = 30 # !!
+    MOLECOUNT       = 1  # Amount of moles, one mole so all holes are open each time. otherwise the keypress fails (position-hole mismatch)
     MOLEUPMIN       = 0.3 #s
     MOLEUPMAX       = 2 #s
 
