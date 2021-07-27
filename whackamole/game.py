@@ -199,14 +199,6 @@ class Game:
                 pos = mole.get_hole_pos(not endGame)
                 self.screen.blit(mole.image, pos)
 
-        # Hammer
-        thisHammer = transform.rotate(self.img_mallet.copy(),
-                                      (Constants.MALLETROTHIT if clicked else Constants.MALLETROTNORM))
-        hammer_x, hammer_y = mouse.get_pos()
-        hammer_x -= thisHammer.get_width() / 5
-        hammer_y -= thisHammer.get_height() / 4
-        self.screen.blit(thisHammer, (hammer_x, hammer_y))
-
         # Fade screen if not started or has ended
         if self.timer and (endGame or gameTime == -1):
             overlay = Surface((Constants.GAMEWIDTH, Constants.GAMEHEIGHT), SRCALPHA, 32)
