@@ -172,12 +172,6 @@ class Game:
                     if e.key == K_ESCAPE:  #to reset
                         self.reset()
                         break
-                    # if e.key == K_1: #to paused
-                    #     while (not e.key == K_1):
-                    #         sleep()
-                    if e.key == K_2:
-                        quit()
-                        exit()
 
 
             # End game screen
