@@ -9,7 +9,7 @@ A simple Whack a Mole game written with PyGame
 
 from random import randint, choice
 
-from pygame import image, transform, time
+from pygame import image, transform, time, mixer
 
 from .constants import ImageConstants, MoleConstants, LevelConstants, HoleConstants
 

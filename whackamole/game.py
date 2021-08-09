@@ -7,14 +7,16 @@ A simple Whack a Mole game written with PyGame
 :copyright: (c) 2018 Matt Cowley (IPv4)
 """
 
-from pygame import init, quit, display, image, transform, time, mouse, event, Surface, \
+from pygame import init, quit, display, image, transform, time, mixer, mouse, event, Surface, \
     SRCALPHA, QUIT, KEYDOWN, \
-    K_q, K_w, K_e, K_a, K_s, K_d, K_z, K_x, K_c, K_SPACE, K_ESCAPE
-
+    K_q, K_w, K_e, K_a, K_s, K_d, K_z, K_x, K_c, K_1, K_2, K_SPACE, K_ESCAPE
+from time import sleep
+from sys import exit
 from .constants import Constants
 from .mole import Mole
 from .score import Score
 from .text import Text
+from random import choice
 
 
 class Game:
@@ -42,6 +44,15 @@ class Game:
         # Load mallet
         self.img_mallet = image.load(Constants.IMAGEMALLET)
         self.img_mallet = transform.scale(self.img_mallet, (Constants.MALLETWIDTH, Constants.MALLETHEIGHT))
+
+        # set sound
+        self.sounds_hit = [r"sounds\hit1.mp3", r"sounds\hit2.mp3", r"sounds\hit3.mp3"]
+        self.sounds_miss = [r"sounds\miss1.mp3", r"sounds\miss2.mp3", r"sounds\miss3.mp3"]
+        self.sound_background = r"sounds\playBack.mp3"
+        self.sound_levelUp = r"sounds\levelUp.mp3"
+
+        mixer.init()
+        mixer.music.load(self.sound_background)  # Paste The audio file location
 
         # Set timer
         self.timer = timer
@@ -145,11 +156,14 @@ class Game:
                                 miss = False
                             if mole.is_hit(pos) == 2:  # Hit but stunned
                                 miss = False
-
                         if hit:
                             self.score.hit()
+                            effect = mixer.Sound(choice(self.sounds_hit))
+                            effect.play(0)
                         if miss:
                             self.score.miss()
+                            effect = mixer.Sound(choice(self.sounds_miss))
+                            effect.play(0)
 
                 if e.type == KEYDOWN:
 
@@ -282,5 +296,6 @@ class Game:
             display.flip()
 
     def run(self):
+        mixer.music.play(0)
         self.start()
         quit()
