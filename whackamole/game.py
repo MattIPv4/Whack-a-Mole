@@ -17,7 +17,7 @@ from .mole import Mole
 from .score import Score
 from .text import Text
 from random import choice
-
+from os import path
 
 class Game:
     """
@@ -37,6 +37,7 @@ class Game:
         self.img_background = image.load(Constants.IMAGEBACKGROUND)
         self.img_background = transform.scale(self.img_background, (Constants.GAMEWIDTH, Constants.GAMEHEIGHT))
 
+
         # Load hole
         self.img_hole = image.load(Constants.IMAGEHOLE)
         self.img_hole = transform.scale(self.img_hole, (Constants.HOLEWIDTH, Constants.HOLEHEIGHT))
@@ -46,10 +47,12 @@ class Game:
         self.img_mallet = transform.scale(self.img_mallet, (Constants.MALLETWIDTH, Constants.MALLETHEIGHT))
 
         # set sound
-        self.sounds_hit = [r"sounds\hit1.mp3", r"sounds\hit2.mp3", r"sounds\hit3.mp3"]
-        self.sounds_miss = [r"sounds\miss1.mp3", r"sounds\miss2.mp3", r"sounds\miss3.mp3"]
-        self.sound_background = r"sounds\playBack.mp3"
-        self.sound_levelUp = r"sounds\levelUp.mp3"
+        self.sounds_hit = [path.join("sounds", "hit1.mp3"), path.join("sounds", "hit2.mp3"),
+                           path.join("sounds", "hit3.mp3")]
+        self.sounds_miss = [path.join("sounds", "miss1.mp3"), path.join("sounds", "miss2.mp3"),
+                            path.join("sounds", "miss3.mp3")]
+        self.sound_background = path.join("sounds", "playBack.mp3")
+        self.sound_levelUp = path.join("sounds", "levelUp.mp3")
 
         mixer.init()
         mixer.music.load(self.sound_background)  # Paste The audio file location
@@ -113,8 +116,7 @@ class Game:
         # Handle PyGame events
         for e in event.get():  #returns a list of all the events that are currently in the event queue. Doing so empties the queue.
 
-            # Handle quit
-            if e.type == QUIT:
+            if e.type == QUIT:  # Handle quit exit button
                 self.loop = False
                 break
 
@@ -122,7 +124,6 @@ class Game:
 
             if not endGame:
 
-                # Handle type create a pos
                 if e.type == KEYDOWN:
                     if e.key == K_q:
                         pos = 0
@@ -168,15 +169,21 @@ class Game:
                 if e.type == KEYDOWN:
 
                     # Allow escape to abort attempt
-                    if e.key == K_ESCAPE:
+                    if e.key == K_ESCAPE:  #to reset
                         self.reset()
                         break
+                    # if e.key == K_1: #to paused
+                    #     while (not e.key == K_1):
+                    #         sleep()
+                    if e.key == K_2:
+                        quit()
+                        exit()
+
 
             # End game screen
             else:
                 if e.type == KEYDOWN:
-                    if e.key == K_SPACE:
-                        # Restart
+                    if e.key == K_SPACE:    # Restart
                         self.reset()
                         break
 
