@@ -51,12 +51,12 @@ class Game:
         self.img_mallet = transform.scale(self.img_mallet, (Constants.MALLETWIDTH, Constants.MALLETHEIGHT))
 
         # set sound
-        self.sounds_hit = [path.join("sounds", "hit1.mp3"), path.join("sounds", "hit2.mp3"),
-                           path.join("sounds", "hit3.mp3")]
-        self.sounds_miss = [path.join("sounds", "miss1.mp3"), path.join("sounds", "miss2.mp3"),
-                            path.join("sounds", "miss3.mp3")]
+        self.sounds_hit = [path.join("sounds", "hit1.ogg"), path.join("sounds", "hit2.ogg"),
+                           path.join("sounds", "hit3.ogg")]
+        self.sounds_miss = [path.join("sounds", "miss1.ogg"), path.join("sounds", "miss2.ogg"),
+                            path.join("sounds", "miss3.ogg")]
         self.sound_background = path.join("sounds", "playBack.mp3")
-        self.sound_levelUp = path.join("sounds", "levelUp.mp3")
+        self.sound_levelUp = path.join("sounds", "levelUp.ogg")
 
         mixer.init()
         mixer.music.load(self.sound_background)  # Paste The audio file location
