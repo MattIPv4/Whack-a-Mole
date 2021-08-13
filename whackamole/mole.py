@@ -4,13 +4,11 @@
 Whack a Mole
 ~~~~~~~~~~~~~~~~~~~
 A simple Whack a Mole game written with PyGame
-:copyright: (c) 2018 Matt Cowley (IPv4)
 """
 
 from random import randint, choice
-
 from pygame import image, transform, time, mixer
-
+from .lightMatrix import LightMatrix
 from .constants import ImageConstants, MoleConstants, LevelConstants, HoleConstants
 
 
@@ -19,7 +17,7 @@ class Mole:
     Provides the mole used in game
     """
 
-    def __init__(self):
+    def __init__(self, light_matrix: LightMatrix):
         # Load images
         self.img_normal = image.load(ImageConstants.IMAGEMOLENORMAL)
         self.img_normal = transform.scale(self.img_normal, (MoleConstants.MOLEWIDTH, MoleConstants.MOLEHEIGHT))
@@ -53,6 +51,9 @@ class Mole:
         # Indicates if mole is hit
         # False = Not hit, timestamp for stunned freeze
         self.hit = False
+
+        # save lightMatrix
+        self.light_matrix = light_matrix
 
     @property
     def image(self):
@@ -108,10 +109,12 @@ class Mole:
                     # Pick a new hole, don't pick the last one, don't infinite loop
                     self.current_hole = self.last_hole
                     if len(holes) > 1 or self.current_hole != holes[0]:
+                        self.light_matrix.lightOff(self.position)
                         while self.current_hole == self.last_hole:  # as long as the holes are the same pick a new one
                             self.position = randint(0, len(holes)-1)  # define a new position in the class
                             self.current_hole = holes[self.position]  # use the same position to keep the hole
                         self.last_hole = self.current_hole
+                        self.light_matrix.lightOn(self.position)
                         new_hole = True
 
             # Show as popped up for a bit

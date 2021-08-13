@@ -14,6 +14,7 @@ from time import sleep
 from sys import exit
 from .constants import Constants
 from .mole import Mole
+from .lightMatrix import LightMatrix
 from .score import Score
 from .text import Text
 from random import choice
@@ -42,6 +43,9 @@ class Game:
         self.img_hole = image.load(Constants.IMAGEHOLE)
         self.img_hole = transform.scale(self.img_hole, (Constants.HOLEWIDTH, Constants.HOLEHEIGHT))
 
+        # Load lightMatrix
+        self.light_matrix = LightMatrix()
+
         # Load mallet
         self.img_mallet = image.load(Constants.IMAGEMALLET)
         self.img_mallet = transform.scale(self.img_mallet, (Constants.MALLETWIDTH, Constants.MALLETHEIGHT))
@@ -69,7 +73,7 @@ class Game:
 
     def reset(self):
         # Load moles
-        self.moles = [Mole() for _ in range(Constants.MOLECOUNT)]  # create a List
+        self.moles = [Mole(self.light_matrix) for _ in range(Constants.MOLECOUNT)]  # create a List
 
         # Generate hole positions
         self.holes = []

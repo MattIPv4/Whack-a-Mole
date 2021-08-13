@@ -46,6 +46,13 @@ class HoleConstants:
     if HOLEWIDTH*HOLECOLUMNS > GameConstants.GAMEWIDTH:
         raise ValueError("HOLECOLUMNS or HOLEWIDTH too high (or GAMEWIDTH too small)")
 
+class BoardConstants:
+    """
+    Constants used to difine pinout
+    """
+
+    PINS        = [2, 3, 4, 17, 27, 22, 10, 9, 11]
+
 
 class MoleConstants:
     """
@@ -109,10 +116,11 @@ class MalletConstants:
     MALLETROTHIT    = 30
 
 
-class Constants(GameConstants, LevelConstants, HoleConstants, MoleConstants, TextConstants, ImageConstants, MalletConstants):
+class Constants(GameConstants, LevelConstants, HoleConstants, BoardConstants, MoleConstants, TextConstants, ImageConstants, MalletConstants):
     """
     Stores all the constants used in the game
     """
 
     DEBUGMODE       = False
     LEFTMOUSEBUTTON = 1
+
